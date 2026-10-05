@@ -9,6 +9,7 @@ export type LeadEmailInput = {
 };
 
 export type EmailNotificationStatus = "sent" | "not_configured" | "failed";
+export type SmtpVerificationStatus = "verified" | "not_configured" | "failed";
 
 const RECIPIENT = "skmediamonetization@gmail.com";
 
@@ -34,6 +35,29 @@ function createTransporter() {
     greetingTimeout: 10_000,
     socketTimeout: 20_000,
   });
+}
+
+export async function verifySmtpConnection(): Promise<{
+  status: SmtpVerificationStatus;
+  reason?: string;
+}> {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+    return { status: "not_configured" };
+  }
+
+  try {
+    const transporter = createTransporter();
+    if (!transporter) {
+      return { status: "not_configured" };
+    }
+    await transporter.verify();
+    return { status: "verified" };
+  } catch (error) {
+    return {
+      status: "failed",
+      reason: error instanceof Error ? error.name : "UnknownSmtpError",
+    };
+  }
 }
 
 export async function sendLeadNotification(

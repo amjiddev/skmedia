@@ -24,10 +24,16 @@ export async function provisionInitialAdmin(): Promise<void> {
   }
 
   if (username.length < 3 || username.length > 100) {
-    throw new Error("ADMIN_USERNAME must be between 3 and 100 characters");
+    logger.warn(
+      "Initial admin account was not created. ADMIN_USERNAME must be between 3 and 100 characters.",
+    );
+    return;
   }
   if (password.length < 12 || password.length > 200) {
-    throw new Error("ADMIN_INITIAL_PASSWORD must be between 12 and 200 characters");
+    logger.warn(
+      "Initial admin account was not created. ADMIN_INITIAL_PASSWORD must be between 12 and 200 characters.",
+    );
+    return;
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
