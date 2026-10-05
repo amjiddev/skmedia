@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "SK Media Monetization"
+description = "A premium agency website for content creators seeking monetization support across YouTube, Facebook, and TikTok, with lead capture and a protected admin dashboard."
+version = "1.0.0"
+id = "artifacts/sk-media-monetization"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24632
+
+[services.development]
+run = "pnpm --filter @workspace/sk-media-monetization run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sk-media-monetization", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/sk-media-monetization/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24632"
+BASE_PATH = "/"

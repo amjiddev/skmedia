@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: contact
+    description: Public contact form
+  - name: admin
+    description: Admin authentication and lead management
 paths:
   /healthz:
     get:
@@ -24,6 +28,160 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /contact:
+    post:
+      operationId: createContact
+      tags: [contact]
+      summary: Submit a contact request
+      description: Validates and stores a lead from the public website.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Contact request saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactSubmission"
+        "400":
+          description: Invalid contact details
+        "429":
+          description: Too many requests
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Sign in to the admin panel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSession"
+        "401":
+          description: Invalid username or password
+        "429":
+          description: Too many login attempts
+  /admin/session:
+    get:
+      operationId: getAdminSession
+      tags: [admin]
+      summary: Check the current admin session
+      responses:
+        "200":
+          description: Current session state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSession"
+  /admin/logout:
+    post:
+      operationId: adminLogout
+      tags: [admin]
+      summary: End the current admin session
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+  /contacts:
+    get:
+      operationId: getContacts
+      tags: [admin]
+      summary: Get all contact leads
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: Contact leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Contact"
+        "401":
+          description: Admin authentication required
+  /contacts/summary:
+    get:
+      operationId: getContactSummary
+      tags: [admin]
+      summary: Get contact lead counts
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: Contact totals by status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactSummary"
+        "401":
+          description: Admin authentication required
+  /contacts/{id}:
+    patch:
+      operationId: updateContactStatus
+      tags: [admin]
+      summary: Mark a contact lead as contacted or new
+      description: Requires an authenticated admin session.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactStatusInput"
+      responses:
+        "200":
+          description: Updated contact lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        "401":
+          description: Admin authentication required
+        "404":
+          description: Contact lead not found
+    delete:
+      operationId: deleteContact
+      tags: [admin]
+      summary: Delete a contact lead
+      description: Requires an authenticated admin session.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Deleted contact lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "401":
+          description: Admin authentication required
+        "404":
+          description: Contact lead not found
 components:
   schemas:
     HealthStatus:
@@ -33,4 +191,109 @@ components:
           type: string
       required:
         - status
+    ContactInput:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          minLength: 7
+          maxLength: 32
+        platform:
+          type: string
+          enum: [YouTube, Facebook, TikTok, Other]
+        message:
+          type: string
+          maxLength: 2000
+      required: [name, email, phone, platform]
+    ContactSubmission:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+        emailNotification:
+          type: string
+          enum: [sent, not_configured, failed]
+      required: [id, message, emailNotification]
+    Contact:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        platform:
+          type: string
+          enum: [YouTube, Facebook, TikTok, Other]
+        message:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [new, contacted]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, email, phone, platform, message, status, createdAt]
+    AdminLoginInput:
+      type: object
+      additionalProperties: false
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 100
+        password:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required: [username, password]
+    AdminSession:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        username:
+          type: ["string", "null"]
+      required: [authenticated, username]
+    ContactStatusInput:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum: [new, contacted]
+      required: [status]
+    ContactSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        new:
+          type: integer
+        contacted:
+          type: integer
+      required: [total, new, contacted]
+    ActionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required: [success]
 
