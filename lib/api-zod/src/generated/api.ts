@@ -49,22 +49,281 @@ export const CreateContactResponse = zod.object({
 
 
 /**
+ * @summary Get approved shared creator ideas
+ */
+export const getSharedIdeasResponseOneTitleMin = 4;
+export const getSharedIdeasResponseOneTitleMax = 100;
+
+export const getSharedIdeasResponseOneCategoryMax = 80;
+
+export const getSharedIdeasResponseOneDescriptionMin = 10;
+export const getSharedIdeasResponseOneDescriptionMax = 500;
+
+export const getSharedIdeasResponseOneTagMax = 80;
+
+export const getSharedIdeasResponseTwoPostedByMax = 100;
+
+
+
+export const GetSharedIdeasResponseItem = zod.object({
+  "title": zod.string().min(getSharedIdeasResponseOneTitleMin).max(getSharedIdeasResponseOneTitleMax),
+  "category": zod.string().min(1).max(getSharedIdeasResponseOneCategoryMax),
+  "description": zod.string().min(getSharedIdeasResponseOneDescriptionMin).max(getSharedIdeasResponseOneDescriptionMax),
+  "tag": zod.string().min(1).max(getSharedIdeasResponseOneTagMax)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "postedBy": zod.string().min(1).max(getSharedIdeasResponseTwoPostedByMax),
+  "status": zod.enum(['pending', 'approved', 'rejected'])
+}))
+export const GetSharedIdeasResponse = zod.array(GetSharedIdeasResponseItem)
+
+
+/**
+ * Requires an authenticated member session. Member ideas are pending until an admin approves them.
+ * @summary Add a shared creator idea
+ */
+export const createSharedIdeaBodyTitleMin = 4;
+export const createSharedIdeaBodyTitleMax = 100;
+
+export const createSharedIdeaBodyCategoryMax = 80;
+
+export const createSharedIdeaBodyDescriptionMin = 10;
+export const createSharedIdeaBodyDescriptionMax = 500;
+
+export const createSharedIdeaBodyTagMax = 80;
+
+
+
+export const CreateSharedIdeaBody = zod.object({
+  "title": zod.string().min(createSharedIdeaBodyTitleMin).max(createSharedIdeaBodyTitleMax),
+  "category": zod.string().min(1).max(createSharedIdeaBodyCategoryMax),
+  "description": zod.string().min(createSharedIdeaBodyDescriptionMin).max(createSharedIdeaBodyDescriptionMax),
+  "tag": zod.string().min(1).max(createSharedIdeaBodyTagMax)
+})
+
+export const createSharedIdeaResponseOneTitleMin = 4;
+export const createSharedIdeaResponseOneTitleMax = 100;
+
+export const createSharedIdeaResponseOneCategoryMax = 80;
+
+export const createSharedIdeaResponseOneDescriptionMin = 10;
+export const createSharedIdeaResponseOneDescriptionMax = 500;
+
+export const createSharedIdeaResponseOneTagMax = 80;
+
+export const createSharedIdeaResponseTwoPostedByMax = 100;
+
+
+
+export const CreateSharedIdeaResponse = zod.object({
+  "title": zod.string().min(createSharedIdeaResponseOneTitleMin).max(createSharedIdeaResponseOneTitleMax),
+  "category": zod.string().min(1).max(createSharedIdeaResponseOneCategoryMax),
+  "description": zod.string().min(createSharedIdeaResponseOneDescriptionMin).max(createSharedIdeaResponseOneDescriptionMax),
+  "tag": zod.string().min(1).max(createSharedIdeaResponseOneTagMax)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "postedBy": zod.string().min(1).max(createSharedIdeaResponseTwoPostedByMax),
+  "status": zod.enum(['pending', 'approved', 'rejected'])
+}))
+
+
+/**
+ * Requires an authenticated admin session.
+ * @summary Get every shared idea for admin review
+ */
+export const getAllSharedIdeasResponseOneTitleMin = 4;
+export const getAllSharedIdeasResponseOneTitleMax = 100;
+
+export const getAllSharedIdeasResponseOneCategoryMax = 80;
+
+export const getAllSharedIdeasResponseOneDescriptionMin = 10;
+export const getAllSharedIdeasResponseOneDescriptionMax = 500;
+
+export const getAllSharedIdeasResponseOneTagMax = 80;
+
+export const getAllSharedIdeasResponseTwoPostedByMax = 100;
+
+
+
+export const GetAllSharedIdeasResponseItem = zod.object({
+  "title": zod.string().min(getAllSharedIdeasResponseOneTitleMin).max(getAllSharedIdeasResponseOneTitleMax),
+  "category": zod.string().min(1).max(getAllSharedIdeasResponseOneCategoryMax),
+  "description": zod.string().min(getAllSharedIdeasResponseOneDescriptionMin).max(getAllSharedIdeasResponseOneDescriptionMax),
+  "tag": zod.string().min(1).max(getAllSharedIdeasResponseOneTagMax)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "postedBy": zod.string().min(1).max(getAllSharedIdeasResponseTwoPostedByMax),
+  "status": zod.enum(['pending', 'approved', 'rejected'])
+}))
+export const GetAllSharedIdeasResponse = zod.array(GetAllSharedIdeasResponseItem)
+
+
+/**
+ * Requires an authenticated member session.
+ * @summary Get ideas submitted by the authenticated member
+ */
+export const getMySharedIdeasResponseOneTitleMin = 4;
+export const getMySharedIdeasResponseOneTitleMax = 100;
+
+export const getMySharedIdeasResponseOneCategoryMax = 80;
+
+export const getMySharedIdeasResponseOneDescriptionMin = 10;
+export const getMySharedIdeasResponseOneDescriptionMax = 500;
+
+export const getMySharedIdeasResponseOneTagMax = 80;
+
+export const getMySharedIdeasResponseTwoPostedByMax = 100;
+
+
+
+export const GetMySharedIdeasResponseItem = zod.object({
+  "title": zod.string().min(getMySharedIdeasResponseOneTitleMin).max(getMySharedIdeasResponseOneTitleMax),
+  "category": zod.string().min(1).max(getMySharedIdeasResponseOneCategoryMax),
+  "description": zod.string().min(getMySharedIdeasResponseOneDescriptionMin).max(getMySharedIdeasResponseOneDescriptionMax),
+  "tag": zod.string().min(1).max(getMySharedIdeasResponseOneTagMax)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "postedBy": zod.string().min(1).max(getMySharedIdeasResponseTwoPostedByMax),
+  "status": zod.enum(['pending', 'approved', 'rejected'])
+}))
+export const GetMySharedIdeasResponse = zod.array(GetMySharedIdeasResponseItem)
+
+
+/**
+ * Requires an authenticated admin session.
+ * @summary Approve or reject a shared idea
+ */
+export const UpdateSharedIdeaStatusParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const UpdateSharedIdeaStatusBody = zod.object({
+  "status": zod.enum(['pending', 'approved', 'rejected'])
+})
+
+export const updateSharedIdeaStatusResponseOneTitleMin = 4;
+export const updateSharedIdeaStatusResponseOneTitleMax = 100;
+
+export const updateSharedIdeaStatusResponseOneCategoryMax = 80;
+
+export const updateSharedIdeaStatusResponseOneDescriptionMin = 10;
+export const updateSharedIdeaStatusResponseOneDescriptionMax = 500;
+
+export const updateSharedIdeaStatusResponseOneTagMax = 80;
+
+export const updateSharedIdeaStatusResponseTwoPostedByMax = 100;
+
+
+
+export const UpdateSharedIdeaStatusResponse = zod.object({
+  "title": zod.string().min(updateSharedIdeaStatusResponseOneTitleMin).max(updateSharedIdeaStatusResponseOneTitleMax),
+  "category": zod.string().min(1).max(updateSharedIdeaStatusResponseOneCategoryMax),
+  "description": zod.string().min(updateSharedIdeaStatusResponseOneDescriptionMin).max(updateSharedIdeaStatusResponseOneDescriptionMax),
+  "tag": zod.string().min(1).max(updateSharedIdeaStatusResponseOneTagMax)
+}).and(zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date(),
+  "postedBy": zod.string().min(1).max(updateSharedIdeaStatusResponseTwoPostedByMax),
+  "status": zod.enum(['pending', 'approved', 'rejected'])
+}))
+
+
+/**
+ * @summary Create a member account
+ */
+export const memberRegisterBodyNameMin = 2;
+export const memberRegisterBodyNameMax = 100;
+
+export const memberRegisterBodyEmailMax = 254;
+
+export const memberRegisterBodyPasswordMin = 8;
+export const memberRegisterBodyPasswordMax = 200;
+
+
+
+export const MemberRegisterBody = zod.object({
+  "name": zod.string().min(memberRegisterBodyNameMin).max(memberRegisterBodyNameMax),
+  "email": zod.string().email().max(memberRegisterBodyEmailMax),
+  "password": zod.string().min(memberRegisterBodyPasswordMin).max(memberRegisterBodyPasswordMax)
+})
+
+export const MemberRegisterResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "user": zod.union([zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "email": zod.string().email()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Sign in to a member account
+ */
+export const memberLoginBodyEmailMax = 254;
+
+export const memberLoginBodyPasswordMax = 200;
+
+
+
+export const MemberLoginBody = zod.object({
+  "email": zod.string().email().max(memberLoginBodyEmailMax),
+  "password": zod.string().min(1).max(memberLoginBodyPasswordMax)
+})
+
+export const MemberLoginResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "user": zod.union([zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "email": zod.string().email()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Check the current member session
+ */
+export const GetMemberSessionResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "user": zod.union([zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "email": zod.string().email()
+}),zod.null()])
+})
+
+
+/**
+ * @summary End the current member session
+ */
+export const MemberLogoutResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary Sign in to the admin panel
  */
-export const adminLoginBodyUsernameMax = 100;
+export const adminLoginBodyIdentifierMax = 254;
 
 export const adminLoginBodyPasswordMax = 200;
 
 
 
 export const AdminLoginBody = zod.object({
-  "username": zod.string().min(1).max(adminLoginBodyUsernameMax),
+  "identifier": zod.string().min(1).max(adminLoginBodyIdentifierMax),
   "password": zod.string().min(1).max(adminLoginBodyPasswordMax)
 })
 
 export const AdminLoginResponse = zod.object({
   "authenticated": zod.boolean(),
-  "username": zod.string().nullable()
+  "username": zod.string().nullable(),
+  "email": zod.string().email().nullable()
 })
 
 
@@ -73,7 +332,27 @@ export const AdminLoginResponse = zod.object({
  */
 export const GetAdminSessionResponse = zod.object({
   "authenticated": zod.boolean(),
-  "username": zod.string().nullable()
+  "username": zod.string().nullable(),
+  "email": zod.string().email().nullable()
+})
+
+
+/**
+ * Requires an authenticated admin session.
+ * @summary Update the current administrator's email address
+ */
+export const updateAdminProfileBodyEmailMax = 254;
+
+
+
+export const UpdateAdminProfileBody = zod.object({
+  "email": zod.string().email().max(updateAdminProfileBodyEmailMax).nullable()
+})
+
+export const UpdateAdminProfileResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "username": zod.string().nullable(),
+  "email": zod.string().email().nullable()
 })
 
 
@@ -82,6 +361,27 @@ export const GetAdminSessionResponse = zod.object({
  */
 export const AdminLogoutResponse = zod.object({
   "success": zod.boolean()
+})
+
+
+/**
+ * Requires an authenticated admin session and the current password.
+ * @summary Change the current admin password
+ */
+export const changeAdminPasswordBodyOldPasswordMax = 200;
+
+export const changeAdminPasswordBodyNewPasswordMin = 8;
+export const changeAdminPasswordBodyNewPasswordMax = 200;
+
+
+
+export const ChangeAdminPasswordBody = zod.object({
+  "oldPassword": zod.string().min(1).max(changeAdminPasswordBodyOldPasswordMax),
+  "newPassword": zod.string().min(changeAdminPasswordBodyNewPasswordMin).max(changeAdminPasswordBodyNewPasswordMax)
+})
+
+export const ChangeAdminPasswordResponse = zod.object({
+  "success": zod.literal(true)
 })
 
 

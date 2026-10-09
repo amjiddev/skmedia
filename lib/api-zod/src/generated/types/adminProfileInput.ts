@@ -6,10 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface AdminSession {
-  authenticated: boolean;
-  /** @nullable */
-  username: string | null;
-  /** @nullable */
+export interface AdminProfileInput {
+  /**
+     * @maxLength 254
+     * @nullable
+     */
   email: string | null;
 }

@@ -6,14 +6,16 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface AdminLoginInput {
+export interface MemberRegisterInput {
   /**
-     * @minLength 1
-     * @maxLength 254
+     * @minLength 2
+     * @maxLength 100
      */
-  identifier: string;
+  name: string;
+  /** @maxLength 254 */
+  email: string;
   /**
-     * @minLength 1
+     * @minLength 8
      * @maxLength 200
      */
   password: string;

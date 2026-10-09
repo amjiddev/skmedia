@@ -9,6 +9,7 @@ A responsive agency website for creators seeking YouTube, Facebook, and TikTok m
 - Lead records saved to PostgreSQL
 - Nodemailer email notifications to `skmediamonetization@gmail.com`
 - Admin sign-in with bcrypt password hashing and an HTTP-only session cookie
+- Member registration and email/password sign-in with bcrypt password hashing, unique email addresses, HTTP-only sessions, and sign-out
 - Protected lead list with status updates and deletion
 - Dashboard totals for all, new, and contacted leads
 - FAQ, testimonial placeholders, map embed, and WhatsApp contact link
@@ -22,14 +23,14 @@ The project uses Replit's provisioned PostgreSQL database. `DATABASE_URL` is sup
 1. Add `ADMIN_INITIAL_PASSWORD` and the SMTP settings below under **Tools → Secrets**. Do not commit credentials or place them in chat.
 2. Optionally set `ADMIN_USERNAME`; it defaults to `skadmin`.
 3. The API creates the initial admin account at startup only when the admin table is empty.
-4. Run the database schema command once for the development database:
+4. Run the database schema command after schema changes (including the new member accounts table):
 
    ```sh
    pnpm --filter @workspace/db run push
    ```
 
 5. Start the existing **API Server** and **SK Media Monetization** workflows.
-6. Open `/admin` to sign in.
+6. Open `/admin` to sign in as an administrator. Members can register or sign in from the website's Login menu or at `/register` and `/login`.
 
 Changing `ADMIN_INITIAL_PASSWORD` does not overwrite an existing admin. Keep the value private after initial provisioning.
 
@@ -58,7 +59,7 @@ pnpm --filter @workspace/api-server run dev
 pnpm --filter @workspace/sk-media-monetization run dev
 ```
 
-The API is mounted at `/api`; the website is served at `/`. To regenerate API types after changing `lib/api-spec/openapi.yaml`:
+The API is mounted at `/api`; the website is served at `/`. Member sessions are stored in an HTTP-only cookie and expire after eight hours. Registration and login are rate-limited. To regenerate API types after changing `lib/api-spec/openapi.yaml`:
 
 ```sh
 pnpm --filter @workspace/api-spec run codegen

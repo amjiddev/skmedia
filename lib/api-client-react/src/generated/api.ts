@@ -22,13 +22,22 @@ import type {
 import type {
   ActionResult,
   AdminLoginInput,
+  AdminProfileInput,
   AdminSession,
+  ChangeAdminPassword200,
+  ChangeAdminPasswordInput,
   Contact,
   ContactInput,
   ContactStatusInput,
   ContactSubmission,
   ContactSummary,
-  HealthStatus
+  HealthStatus,
+  MemberLoginInput,
+  MemberRegisterInput,
+  MemberSession,
+  SharedIdea,
+  SharedIdeaInput,
+  SharedIdeaStatusInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -225,6 +234,745 @@ export const useCreateContact = <TError = ErrorType<void>,
       return useMutation(getCreateContactMutationOptions(options));
     }
 
+export const getGetSharedIdeasUrl = () => {
+
+
+
+
+  return `/api/ideas`
+}
+
+/**
+ * @summary Get approved shared creator ideas
+ */
+export const getSharedIdeas = async ( options?: Parameters<typeof customFetch>[1]): Promise<SharedIdea[]> => {
+
+  return customFetch<SharedIdea[]>(getGetSharedIdeasUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSharedIdeasQueryKey = () => {
+    return [
+    `/api/ideas`
+    ] as const;
+    }
+
+
+export const getGetSharedIdeasQueryOptions = <TData = Awaited<ReturnType<typeof getSharedIdeas>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSharedIdeas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSharedIdeasQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSharedIdeas>>> = ({ signal }) => getSharedIdeas({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSharedIdeas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSharedIdeasQueryResult = NonNullable<Awaited<ReturnType<typeof getSharedIdeas>>>
+export type GetSharedIdeasQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get approved shared creator ideas
+ */
+
+export function useGetSharedIdeas<TData = Awaited<ReturnType<typeof getSharedIdeas>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSharedIdeas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSharedIdeasQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateSharedIdeaUrl = () => {
+
+
+
+
+  return `/api/ideas`
+}
+
+/**
+ * Requires an authenticated member session. Member ideas are pending until an admin approves them.
+ * @summary Add a shared creator idea
+ */
+export const createSharedIdea = async (sharedIdeaInput: SharedIdeaInput, options?: Parameters<typeof customFetch>[1]): Promise<SharedIdea> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SharedIdea>(getCreateSharedIdeaUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sharedIdeaInput)
+  }
+);}
+
+
+
+
+
+export const getCreateSharedIdeaMutationKey = () => ['createSharedIdea'] as const;
+
+export const getCreateSharedIdeaMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSharedIdea>>, TError,CreateSharedIdeaMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createSharedIdea>>, TError,CreateSharedIdeaMutationVariables, TContext> => {
+
+const mutationKey = getCreateSharedIdeaMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSharedIdea>>, CreateSharedIdeaMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createSharedIdea(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateSharedIdeaMutationResult = NonNullable<Awaited<ReturnType<typeof createSharedIdea>>>
+    export type CreateSharedIdeaMutationBody = BodyType<SharedIdeaInput>
+    export type CreateSharedIdeaMutationError = ErrorType<void>
+    export type CreateSharedIdeaMutationVariables = {data: BodyType<SharedIdeaInput>}
+
+    /**
+ * @summary Add a shared creator idea
+ */
+export const useCreateSharedIdea = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSharedIdea>>, TError,CreateSharedIdeaMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createSharedIdea>>,
+        TError,
+        CreateSharedIdeaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateSharedIdeaMutationOptions(options));
+    }
+
+export const getGetAllSharedIdeasUrl = () => {
+
+
+
+
+  return `/api/ideas/all`
+}
+
+/**
+ * Requires an authenticated admin session.
+ * @summary Get every shared idea for admin review
+ */
+export const getAllSharedIdeas = async ( options?: Parameters<typeof customFetch>[1]): Promise<SharedIdea[]> => {
+
+  return customFetch<SharedIdea[]>(getGetAllSharedIdeasUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAllSharedIdeasQueryKey = () => {
+    return [
+    `/api/ideas/all`
+    ] as const;
+    }
+
+
+export const getGetAllSharedIdeasQueryOptions = <TData = Awaited<ReturnType<typeof getAllSharedIdeas>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSharedIdeas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAllSharedIdeasQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllSharedIdeas>>> = ({ signal }) => getAllSharedIdeas({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllSharedIdeas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAllSharedIdeasQueryResult = NonNullable<Awaited<ReturnType<typeof getAllSharedIdeas>>>
+export type GetAllSharedIdeasQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get every shared idea for admin review
+ */
+
+export function useGetAllSharedIdeas<TData = Awaited<ReturnType<typeof getAllSharedIdeas>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSharedIdeas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAllSharedIdeasQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMySharedIdeasUrl = () => {
+
+
+
+
+  return `/api/ideas/mine`
+}
+
+/**
+ * Requires an authenticated member session.
+ * @summary Get ideas submitted by the authenticated member
+ */
+export const getMySharedIdeas = async ( options?: Parameters<typeof customFetch>[1]): Promise<SharedIdea[]> => {
+
+  return customFetch<SharedIdea[]>(getGetMySharedIdeasUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMySharedIdeasQueryKey = () => {
+    return [
+    `/api/ideas/mine`
+    ] as const;
+    }
+
+
+export const getGetMySharedIdeasQueryOptions = <TData = Awaited<ReturnType<typeof getMySharedIdeas>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMySharedIdeas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMySharedIdeasQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMySharedIdeas>>> = ({ signal }) => getMySharedIdeas({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMySharedIdeas>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMySharedIdeasQueryResult = NonNullable<Awaited<ReturnType<typeof getMySharedIdeas>>>
+export type GetMySharedIdeasQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get ideas submitted by the authenticated member
+ */
+
+export function useGetMySharedIdeas<TData = Awaited<ReturnType<typeof getMySharedIdeas>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMySharedIdeas>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMySharedIdeasQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateSharedIdeaStatusUrl = (id: string,) => {
+
+
+
+
+  return `/api/ideas/${id}/status`
+}
+
+/**
+ * Requires an authenticated admin session.
+ * @summary Approve or reject a shared idea
+ */
+export const updateSharedIdeaStatus = async (id: string,
+    sharedIdeaStatusInput: SharedIdeaStatusInput, options?: Parameters<typeof customFetch>[1]): Promise<SharedIdea> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SharedIdea>(getUpdateSharedIdeaStatusUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sharedIdeaStatusInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateSharedIdeaStatusMutationKey = () => ['updateSharedIdeaStatus'] as const;
+
+export const getUpdateSharedIdeaStatusMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSharedIdeaStatus>>, TError,UpdateSharedIdeaStatusMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSharedIdeaStatus>>, TError,UpdateSharedIdeaStatusMutationVariables, TContext> => {
+
+const mutationKey = getUpdateSharedIdeaStatusMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSharedIdeaStatus>>, UpdateSharedIdeaStatusMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateSharedIdeaStatus(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSharedIdeaStatusMutationResult = NonNullable<Awaited<ReturnType<typeof updateSharedIdeaStatus>>>
+    export type UpdateSharedIdeaStatusMutationBody = BodyType<SharedIdeaStatusInput>
+    export type UpdateSharedIdeaStatusMutationError = ErrorType<void>
+    export type UpdateSharedIdeaStatusMutationVariables = {id: string;data: BodyType<SharedIdeaStatusInput>}
+
+    /**
+ * @summary Approve or reject a shared idea
+ */
+export const useUpdateSharedIdeaStatus = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSharedIdeaStatus>>, TError,UpdateSharedIdeaStatusMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateSharedIdeaStatus>>,
+        TError,
+        UpdateSharedIdeaStatusMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateSharedIdeaStatusMutationOptions(options));
+    }
+
+export const getMemberRegisterUrl = () => {
+
+
+
+
+  return `/api/auth/register`
+}
+
+/**
+ * @summary Create a member account
+ */
+export const memberRegister = async (memberRegisterInput: MemberRegisterInput, options?: Parameters<typeof customFetch>[1]): Promise<MemberSession> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<MemberSession>(getMemberRegisterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(memberRegisterInput)
+  }
+);}
+
+
+
+
+
+export const getMemberRegisterMutationKey = () => ['memberRegister'] as const;
+
+export const getMemberRegisterMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof memberRegister>>, TError,MemberRegisterMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof memberRegister>>, TError,MemberRegisterMutationVariables, TContext> => {
+
+const mutationKey = getMemberRegisterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof memberRegister>>, MemberRegisterMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  memberRegister(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MemberRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof memberRegister>>>
+    export type MemberRegisterMutationBody = BodyType<MemberRegisterInput>
+    export type MemberRegisterMutationError = ErrorType<void>
+    export type MemberRegisterMutationVariables = {data: BodyType<MemberRegisterInput>}
+
+    /**
+ * @summary Create a member account
+ */
+export const useMemberRegister = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof memberRegister>>, TError,MemberRegisterMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof memberRegister>>,
+        TError,
+        MemberRegisterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMemberRegisterMutationOptions(options));
+    }
+
+export const getMemberLoginUrl = () => {
+
+
+
+
+  return `/api/auth/login`
+}
+
+/**
+ * @summary Sign in to a member account
+ */
+export const memberLogin = async (memberLoginInput: MemberLoginInput, options?: Parameters<typeof customFetch>[1]): Promise<MemberSession> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<MemberSession>(getMemberLoginUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(memberLoginInput)
+  }
+);}
+
+
+
+
+
+export const getMemberLoginMutationKey = () => ['memberLogin'] as const;
+
+export const getMemberLoginMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof memberLogin>>, TError,MemberLoginMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof memberLogin>>, TError,MemberLoginMutationVariables, TContext> => {
+
+const mutationKey = getMemberLoginMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof memberLogin>>, MemberLoginMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  memberLogin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MemberLoginMutationResult = NonNullable<Awaited<ReturnType<typeof memberLogin>>>
+    export type MemberLoginMutationBody = BodyType<MemberLoginInput>
+    export type MemberLoginMutationError = ErrorType<void>
+    export type MemberLoginMutationVariables = {data: BodyType<MemberLoginInput>}
+
+    /**
+ * @summary Sign in to a member account
+ */
+export const useMemberLogin = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof memberLogin>>, TError,MemberLoginMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof memberLogin>>,
+        TError,
+        MemberLoginMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMemberLoginMutationOptions(options));
+    }
+
+export const getGetMemberSessionUrl = () => {
+
+
+
+
+  return `/api/auth/session`
+}
+
+/**
+ * @summary Check the current member session
+ */
+export const getMemberSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<MemberSession> => {
+
+  return customFetch<MemberSession>(getGetMemberSessionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMemberSessionQueryKey = () => {
+    return [
+    `/api/auth/session`
+    ] as const;
+    }
+
+
+export const getGetMemberSessionQueryOptions = <TData = Awaited<ReturnType<typeof getMemberSession>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemberSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMemberSessionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMemberSession>>> = ({ signal }) => getMemberSession({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMemberSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMemberSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getMemberSession>>>
+export type GetMemberSessionQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Check the current member session
+ */
+
+export function useGetMemberSession<TData = Awaited<ReturnType<typeof getMemberSession>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemberSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMemberSessionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMemberLogoutUrl = () => {
+
+
+
+
+  return `/api/auth/logout`
+}
+
+/**
+ * @summary End the current member session
+ */
+export const memberLogout = async ( options?: Parameters<typeof customFetch>[1]): Promise<ActionResult> => {
+
+  return customFetch<ActionResult>(getMemberLogoutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getMemberLogoutMutationKey = () => ['memberLogout'] as const;
+
+export const getMemberLogoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof memberLogout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof memberLogout>>, TError,void, TContext> => {
+
+const mutationKey = getMemberLogoutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof memberLogout>>, void> = () => {
+
+
+          return  memberLogout(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MemberLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof memberLogout>>>
+
+    export type MemberLogoutMutationError = ErrorType<unknown>
+
+
+    /**
+ * @summary End the current member session
+ */
+export const useMemberLogout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof memberLogout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof memberLogout>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getMemberLogoutMutationOptions(options));
+    }
+
 export const getAdminLoginUrl = () => {
 
 
@@ -390,6 +1138,95 @@ export function useGetAdminSession<TData = Awaited<ReturnType<typeof getAdminSes
 
 
 
+export const getUpdateAdminProfileUrl = () => {
+
+
+
+
+  return `/api/admin/profile`
+}
+
+/**
+ * Requires an authenticated admin session.
+ * @summary Update the current administrator's email address
+ */
+export const updateAdminProfile = async (adminProfileInput: AdminProfileInput, options?: Parameters<typeof customFetch>[1]): Promise<AdminSession> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AdminSession>(getUpdateAdminProfileUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(adminProfileInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateAdminProfileMutationKey = () => ['updateAdminProfile'] as const;
+
+export const getUpdateAdminProfileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminProfile>>, TError,UpdateAdminProfileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdminProfile>>, TError,UpdateAdminProfileMutationVariables, TContext> => {
+
+const mutationKey = getUpdateAdminProfileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdminProfile>>, UpdateAdminProfileMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateAdminProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdminProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdminProfile>>>
+    export type UpdateAdminProfileMutationBody = BodyType<AdminProfileInput>
+    export type UpdateAdminProfileMutationError = ErrorType<void>
+    export type UpdateAdminProfileMutationVariables = {data: BodyType<AdminProfileInput>}
+
+    /**
+ * @summary Update the current administrator's email address
+ */
+export const useUpdateAdminProfile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdminProfile>>, TError,UpdateAdminProfileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdminProfile>>,
+        TError,
+        UpdateAdminProfileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateAdminProfileMutationOptions(options));
+    }
+
 export const getAdminLogoutUrl = () => {
 
 
@@ -462,6 +1299,95 @@ export const useAdminLogout = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getAdminLogoutMutationOptions(options));
+    }
+
+export const getChangeAdminPasswordUrl = () => {
+
+
+
+
+  return `/api/admin/change-password`
+}
+
+/**
+ * Requires an authenticated admin session and the current password.
+ * @summary Change the current admin password
+ */
+export const changeAdminPassword = async (changeAdminPasswordInput: ChangeAdminPasswordInput, options?: Parameters<typeof customFetch>[1]): Promise<ChangeAdminPassword200> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ChangeAdminPassword200>(getChangeAdminPasswordUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(changeAdminPasswordInput)
+  }
+);}
+
+
+
+
+
+export const getChangeAdminPasswordMutationKey = () => ['changeAdminPassword'] as const;
+
+export const getChangeAdminPasswordMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeAdminPassword>>, TError,ChangeAdminPasswordMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeAdminPassword>>, TError,ChangeAdminPasswordMutationVariables, TContext> => {
+
+const mutationKey = getChangeAdminPasswordMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeAdminPassword>>, ChangeAdminPasswordMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  changeAdminPassword(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeAdminPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof changeAdminPassword>>>
+    export type ChangeAdminPasswordMutationBody = BodyType<ChangeAdminPasswordInput>
+    export type ChangeAdminPasswordMutationError = ErrorType<void>
+    export type ChangeAdminPasswordMutationVariables = {data: BodyType<ChangeAdminPasswordInput>}
+
+    /**
+ * @summary Change the current admin password
+ */
+export const useChangeAdminPassword = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeAdminPassword>>, TError,ChangeAdminPasswordMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof changeAdminPassword>>,
+        TError,
+        ChangeAdminPasswordMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChangeAdminPasswordMutationOptions(options));
     }
 
 export const getGetContactsUrl = () => {

@@ -5,11 +5,9 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { MemberIdentity } from './memberIdentity';
 
-export interface AdminSession {
+export interface MemberSession {
   authenticated: boolean;
-  /** @nullable */
-  username: string | null;
-  /** @nullable */
-  email: string | null;
+  user: MemberIdentity | null;
 }

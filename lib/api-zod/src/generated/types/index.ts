@@ -8,7 +8,10 @@
 
 export * from './actionResult';
 export * from './adminLoginInput';
+export * from './adminProfileInput';
 export * from './adminSession';
+export * from './changeAdminPassword200';
+export * from './changeAdminPasswordInput';
 export * from './contact';
 export * from './contactInput';
 export * from './contactInputPlatform';
@@ -20,3 +23,12 @@ export * from './contactSubmission';
 export * from './contactSubmissionEmailNotification';
 export * from './contactSummary';
 export * from './healthStatus';
+export * from './memberIdentity';
+export * from './memberLoginInput';
+export * from './memberRegisterInput';
+export * from './memberSession';
+export * from './sharedIdea';
+export * from './sharedIdeaInput';
+export * from './sharedIdeaStatus';
+export * from './sharedIdeaStatusInput';
+export * from './sharedIdeaStatusInputStatus';

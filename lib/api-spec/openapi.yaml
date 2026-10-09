@@ -14,6 +14,8 @@ tags:
     description: Public contact form
   - name: admin
     description: Admin authentication and lead management
+  - name: member-auth
+    description: Member registration and authentication
 paths:
   /healthz:
     get:
@@ -51,6 +53,114 @@ paths:
           description: Invalid contact details
         "429":
           description: Too many requests
+  /ideas:
+    get:
+      operationId: getSharedIdeas
+      tags: [ideas]
+      summary: Get shared creator ideas
+      responses:
+        "200":
+          description: Shared ideas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedIdea"
+    post:
+      operationId: createSharedIdea
+      tags: [ideas]
+      summary: Add a shared creator idea
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SharedIdeaInput"
+      responses:
+        "201":
+          description: Idea created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedIdea"
+        "400":
+          description: Invalid idea details
+        "401":
+          description: Admin authentication required
+  /auth/register:
+    post:
+      operationId: memberRegister
+      tags: [member-auth]
+      summary: Create a member account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberRegisterInput"
+      responses:
+        "201":
+          description: Account created; the member must sign in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberSession"
+        "400":
+          description: Invalid registration details
+        "409":
+          description: Email address is already registered
+        "429":
+          description: Too many registration attempts
+  /auth/login:
+    post:
+      operationId: memberLogin
+      tags: [member-auth]
+      summary: Sign in to a member account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberLoginInput"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberSession"
+        "400":
+          description: Invalid sign-in details
+        "401":
+          description: Incorrect email or password
+        "429":
+          description: Too many sign-in attempts
+  /auth/session:
+    get:
+      operationId: getMemberSession
+      tags: [member-auth]
+      summary: Check the current member session
+      responses:
+        "200":
+          description: Current session state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberSession"
+  /auth/logout:
+    post:
+      operationId: memberLogout
+      tags: [member-auth]
+      summary: End the current member session
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
   /admin/login:
     post:
       operationId: adminLogin
@@ -85,6 +195,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminSession"
+  /admin/profile:
+    patch:
+      operationId: updateAdminProfile
+      tags: [admin]
+      summary: Update the current administrator's email address
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminProfileInput"
+      responses:
+        "200":
+          description: Updated administrator profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSession"
+        "400":
+          description: Invalid email address
+        "401":
+          description: Admin authentication required
+        "409":
+          description: Email address is already assigned to another admin
   /admin/logout:
     post:
       operationId: adminLogout
@@ -97,6 +232,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ActionResult"
+  /admin/change-password:
+    post:
+      operationId: changeAdminPassword
+      tags: [admin]
+      summary: Change the current admin password
+      description: Requires an authenticated admin session and the current password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeAdminPasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+        "400":
+          description: Invalid request or current password is incorrect
+        "401":
+          description: Admin authentication required
   /contacts:
     get:
       operationId: getContacts
@@ -251,19 +414,56 @@ components:
           type: string
           format: date-time
       required: [id, name, email, phone, platform, message, status, createdAt]
+    SharedIdeaInput:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 4
+          maxLength: 100
+        category:
+          type: string
+          minLength: 1
+          maxLength: 80
+        description:
+          type: string
+          minLength: 10
+          maxLength: 500
+        tag:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required: [title, category, description, tag]
+    SharedIdea:
+      allOf:
+        - $ref: "#/components/schemas/SharedIdeaInput"
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            postedBy:
+              type: string
+              minLength: 1
+              maxLength: 100
+          required: [id, createdAt, postedBy]
     AdminLoginInput:
       type: object
       additionalProperties: false
       properties:
-        username:
+        identifier:
           type: string
           minLength: 1
-          maxLength: 100
+          maxLength: 254
         password:
           type: string
           minLength: 1
           maxLength: 200
-      required: [username, password]
+      required: [identifier, password]
     AdminSession:
       type: object
       properties:
@@ -271,7 +471,84 @@ components:
           type: boolean
         username:
           type: ["string", "null"]
-      required: [authenticated, username]
+        email:
+          type: ["string", "null"]
+          format: email
+      required: [authenticated, username, email]
+    AdminProfileInput:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: ["string", "null"]
+          format: email
+          maxLength: 254
+      required: [email]
+    ChangeAdminPasswordInput:
+      type: object
+      additionalProperties: false
+      properties:
+        oldPassword:
+          type: string
+          minLength: 1
+          maxLength: 200
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 200
+      required: [oldPassword, newPassword]
+    MemberRegisterInput:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 8
+          maxLength: 200
+      required: [name, email, password]
+    MemberLoginInput:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 1
+          maxLength: 200
+      required: [email, password]
+    MemberIdentity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+      required: [id, name, email]
+    MemberSession:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/MemberIdentity"
+            - type: "null"
+      required: [authenticated, user]
     ContactStatusInput:
       type: object
       additionalProperties: false

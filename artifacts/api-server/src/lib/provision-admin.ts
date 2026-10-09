@@ -1,11 +1,12 @@
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db, skAdminsTable } from "@workspace/db";
 import { logger } from "./logger";
 
 export async function provisionInitialAdmin(): Promise<void> {
   const username =
     process.env.ADMIN_USERNAME?.trim().toLowerCase() || "skadmin";
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase() || null;
   const password = process.env.ADMIN_INITIAL_PASSWORD;
   const [existingAdmin] = await db
     .select({ id: skAdminsTable.id })
@@ -36,20 +37,31 @@ export async function provisionInitialAdmin(): Promise<void> {
     return;
   }
 
+  if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+    logger.warn("Initial admin account was not created. ADMIN_EMAIL must be a valid email address.");
+    return;
+  }
+
   const passwordHash = await bcrypt.hash(password, 12);
   await db
     .insert(skAdminsTable)
-    .values({ username, passwordHash })
+    .values({ username, email, passwordHash })
     .onConflictDoNothing({ target: skAdminsTable.username });
 
   logger.info({ username }, "Initial admin account provisioned");
 }
 
-export async function findAdminByUsername(username: string) {
+export async function findAdminByLogin(identifier: string) {
+  const normalizedIdentifier = identifier.trim().toLowerCase();
   const [admin] = await db
     .select()
     .from(skAdminsTable)
-    .where(eq(skAdminsTable.username, username))
+    .where(
+      or(
+        eq(skAdminsTable.username, normalizedIdentifier),
+        eq(skAdminsTable.email, normalizedIdentifier),
+      ),
+    )
     .limit(1);
   return admin;
 }

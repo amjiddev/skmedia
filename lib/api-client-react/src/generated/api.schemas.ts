@@ -82,12 +82,68 @@ export interface Contact {
   createdAt: string;
 }
 
-export interface AdminLoginInput {
+export interface SharedIdeaInput {
+  /**
+     * @minLength 4
+     * @maxLength 100
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  category: string;
+  /**
+     * @minLength 10
+     * @maxLength 500
+     */
+  description: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  tag: string;
+}
+
+export type SharedIdeaStatus = typeof SharedIdeaStatus[keyof typeof SharedIdeaStatus];
+
+
+export const SharedIdeaStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export type SharedIdea = SharedIdeaInput & {
+  id: string;
+  createdAt: string;
   /**
      * @minLength 1
      * @maxLength 100
      */
-  username: string;
+  postedBy: string;
+  status: SharedIdeaStatus;
+};
+
+export type SharedIdeaStatusInputStatus = typeof SharedIdeaStatusInputStatus[keyof typeof SharedIdeaStatusInputStatus];
+
+
+export const SharedIdeaStatusInputStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface SharedIdeaStatusInput {
+  status: SharedIdeaStatusInputStatus;
+}
+
+export interface AdminLoginInput {
+  /**
+     * @minLength 1
+     * @maxLength 254
+     */
+  identifier: string;
   /**
      * @minLength 1
      * @maxLength 200
@@ -99,6 +155,65 @@ export interface AdminSession {
   authenticated: boolean;
   /** @nullable */
   username: string | null;
+  /** @nullable */
+  email: string | null;
+}
+
+export interface AdminProfileInput {
+  /**
+     * @maxLength 254
+     * @nullable
+     */
+  email: string | null;
+}
+
+export interface ChangeAdminPasswordInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  oldPassword: string;
+  /**
+     * @minLength 8
+     * @maxLength 200
+     */
+  newPassword: string;
+}
+
+export interface MemberRegisterInput {
+  /**
+     * @minLength 2
+     * @maxLength 100
+     */
+  name: string;
+  /** @maxLength 254 */
+  email: string;
+  /**
+     * @minLength 8
+     * @maxLength 200
+     */
+  password: string;
+}
+
+export interface MemberLoginInput {
+  /** @maxLength 254 */
+  email: string;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  password: string;
+}
+
+export interface MemberIdentity {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface MemberSession {
+  authenticated: boolean;
+  user: MemberIdentity | null;
 }
 
 export type ContactStatusInputStatus = typeof ContactStatusInputStatus[keyof typeof ContactStatusInputStatus];
@@ -122,4 +237,8 @@ export interface ContactSummary {
 export interface ActionResult {
   success: boolean;
 }
+
+export type ChangeAdminPassword200 = {
+  success: true;
+};
 

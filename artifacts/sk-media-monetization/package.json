@@ -75,6 +75,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
-    "dotenv": "^18.0.5"
+    "dotenv": "^18.0.5",
+    "qrcode.react": "^4.2.0"
   }
 }
