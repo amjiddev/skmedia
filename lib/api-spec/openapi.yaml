@@ -14,9 +14,364 @@ tags:
     description: Public contact form
   - name: admin
     description: Admin authentication and lead management
+  - name: team
+    description: Public team profiles
   - name: member-auth
     description: Member registration and authentication
 paths:
+  /home-content:
+    get:
+      operationId: getHomeContent
+      tags: [home-content]
+      summary: Get public homepage content
+      responses:
+        "200":
+          description: Editable homepage sections and chart data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomePageContent"
+  /admin/home-content:
+    get:
+      operationId: getAdminHomeContent
+      tags: [admin]
+      summary: Get homepage content for administration
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: Current homepage content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomePageContent"
+        "401":
+          description: Admin authentication required
+    put:
+      operationId: updateHomeContent
+      tags: [admin]
+      summary: Update homepage content
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HomePageContent"
+      responses:
+        "200":
+          description: Updated homepage content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomePageContent"
+        "400":
+          description: Invalid homepage content
+        "401":
+          description: Admin authentication required
+  /team:
+    get:
+      operationId: getTeam
+      tags: [team]
+      summary: Get published team members
+      responses:
+        "200":
+          description: Published team profiles in display order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+  /admin/team:
+    get:
+      operationId: getAdminTeam
+      tags: [admin]
+      summary: Get all team profiles for administration
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: All team profiles, including drafts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+        "401":
+          description: Admin authentication required
+    post:
+      operationId: createTeamMember
+      tags: [admin]
+      summary: Create a team profile
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamMemberInput"
+      responses:
+        "201":
+          description: Team profile created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMember"
+        "400":
+          description: Invalid team member details
+        "401":
+          description: Admin authentication required
+  /about-content:
+    get:
+      operationId: getAboutContent
+      tags: [about-content]
+      summary: Get public About page content
+      responses:
+        "200":
+          description: Header, story, and mission section content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AboutContent"
+  /contact-content:
+    get:
+      operationId: getContactContent
+      tags: [contact]
+      summary: Get public Contact page content
+      responses:
+        "200":
+          description: Hero, contact details, and form section content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactPageContent"
+  /admin/contact-content:
+    get:
+      operationId: getAdminContactContent
+      tags: [admin]
+      summary: Get Contact page content for administration
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: Current Contact page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactPageContent"
+        "401":
+          description: Admin authentication required
+    put:
+      operationId: updateContactContent
+      tags: [admin]
+      summary: Update Contact page content
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactPageContent"
+      responses:
+        "200":
+          description: Updated Contact page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactPageContent"
+        "400":
+          description: Invalid Contact page content
+        "401":
+          description: Admin authentication required
+  /services-content:
+    get:
+      operationId: getServicesContent
+      tags: [services-content]
+      summary: Get public Services page content
+      responses:
+        "200":
+          description: Hero, service cards, and process section content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicesPageContent"
+  /faqs:
+    get:
+      operationId: getFaqs
+      tags: [faq]
+      summary: Get published FAQs
+      responses:
+        "200":
+          description: Published questions and answers in display order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FAQPageContent"
+  /admin/faqs:
+    get:
+      operationId: getAdminFaqs
+      tags: [admin]
+      summary: Get FAQs for administration
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: All FAQs, including unpublished drafts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FAQPageContent"
+        "401":
+          description: Admin authentication required
+    put:
+      operationId: updateAdminFaqs
+      tags: [admin]
+      summary: Replace FAQ content
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FAQPageContent"
+      responses:
+        "200":
+          description: Updated FAQ content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FAQPageContent"
+        "400":
+          description: Invalid FAQ content
+        "401":
+          description: Admin authentication required
+  /admin/services-content:
+    get:
+      operationId: getAdminServicesContent
+      tags: [admin]
+      summary: Get Services page content for administration
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: Current Services page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicesPageContent"
+        "401":
+          description: Admin authentication required
+    put:
+      operationId: updateServicesContent
+      tags: [admin]
+      summary: Update Services page content
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServicesPageContent"
+      responses:
+        "200":
+          description: Updated Services page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServicesPageContent"
+        "400":
+          description: Invalid Services page content
+        "401":
+          description: Admin authentication required
+  /admin/about-content:
+    get:
+      operationId: getAdminAboutContent
+      tags: [admin]
+      summary: Get About page content for administration
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: Current About page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AboutContent"
+        "401":
+          description: Admin authentication required
+    put:
+      operationId: updateAboutContent
+      tags: [admin]
+      summary: Update About page content
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AboutContent"
+      responses:
+        "200":
+          description: Updated About page content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AboutContent"
+        "400":
+          description: Invalid About page content
+        "401":
+          description: Admin authentication required
+  /admin/team/{id}:
+    patch:
+      operationId: updateTeamMember
+      tags: [admin]
+      summary: Update a team profile
+      description: Requires an authenticated admin session.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamMemberInput"
+      responses:
+        "200":
+          description: Updated team profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMember"
+        "400":
+          description: Invalid team member details
+        "401":
+          description: Admin authentication required
+        "404":
+          description: Team member not found
+    delete:
+      operationId: deleteTeamMember
+      tags: [admin]
+      summary: Delete a team profile
+      description: Requires an authenticated admin session.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Team profile deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "401":
+          description: Admin authentication required
+        "404":
+          description: Team member not found
   /healthz:
     get:
       operationId: healthCheck
@@ -53,11 +408,166 @@ paths:
           description: Invalid contact details
         "429":
           description: Too many requests
+  /prompts:
+    get:
+      operationId: getPrompts
+      tags: [prompts]
+      summary: Get published prompt cards
+      responses:
+        "200":
+          description: Published prompt cards, without prompt text
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PromptCard"
+  /prompts/{slug}:
+    get:
+      operationId: getPromptBySlug
+      tags: [prompts]
+      summary: Get a published prompt by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Published prompt details, including downloadable-file metadata when present
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptDetail"
+        "404":
+          description: Prompt not found
+  /prompts/{slug}/download:
+    get:
+      operationId: downloadPromptFile
+      tags: [prompts]
+      summary: Download a published prompt attachment
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Prompt attachment download
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "403":
+          description: Prompt attachment is not available for this access level
+        "404":
+          description: Prompt or attachment not found
+  /admin/prompts:
+    get:
+      operationId: getAdminPrompts
+      tags: [admin]
+      summary: Get all prompts for administration
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: All prompts, including drafts and prompt text
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prompt"
+        "401":
+          description: Admin authentication required
+    post:
+      operationId: createPrompt
+      tags: [admin]
+      summary: Create a prompt
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptInput"
+      responses:
+        "201":
+          description: Prompt created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prompt"
+        "400":
+          description: Invalid prompt details
+        "401":
+          description: Admin authentication required
+        "409":
+          description: Prompt slug already exists
+  /admin/prompts/{id}:
+    patch:
+      operationId: updatePrompt
+      tags: [admin]
+      summary: Update a prompt
+      description: Requires an authenticated admin session.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromptInput"
+      responses:
+        "200":
+          description: Updated prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prompt"
+        "400":
+          description: Invalid prompt details
+        "401":
+          description: Admin authentication required
+        "404":
+          description: Prompt not found
+        "409":
+          description: Prompt slug already exists
+    delete:
+      operationId: deletePrompt
+      tags: [admin]
+      summary: Delete a prompt
+      description: Requires an authenticated admin session.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Prompt deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "401":
+          description: Admin authentication required
+        "404":
+          description: Prompt not found
   /ideas:
     get:
       operationId: getSharedIdeas
       tags: [ideas]
-      summary: Get shared creator ideas
+      summary: Get approved shared creator ideas
       responses:
         "200":
           description: Shared ideas
@@ -71,7 +581,7 @@ paths:
       operationId: createSharedIdea
       tags: [ideas]
       summary: Add a shared creator idea
-      description: Requires an authenticated admin session.
+      description: Requires an authenticated member or admin session. Member submissions are pending until an admin approves them.
       requestBody:
         required: true
         content:
@@ -88,7 +598,78 @@ paths:
         "400":
           description: Invalid idea details
         "401":
+          description: Authentication required
+  /ideas/all:
+    get:
+      operationId: getAllSharedIdeas
+      tags: [admin]
+      summary: Get every shared idea for admin review
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: All ideas, including pending and rejected ideas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedIdea"
+        "401":
           description: Admin authentication required
+  /ideas/{id}:
+    delete:
+      operationId: deleteSharedIdea
+      tags: [admin]
+      summary: Delete a shared idea
+      description: Requires an authenticated admin session.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Idea deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+        "401":
+          description: Admin authentication required
+        "404":
+          description: Idea not found
+  /ideas/{id}/status:
+    patch:
+      operationId: updateSharedIdeaStatus
+      tags: [admin]
+      summary: Approve or reject a shared idea
+      description: Requires an authenticated admin session.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SharedIdeaStatusInput"
+      responses:
+        "200":
+          description: Updated shared idea
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedIdea"
+        "401":
+          description: Admin authentication required
+        "404":
+          description: Idea not found
   /auth/register:
     post:
       operationId: memberRegister
@@ -347,6 +928,262 @@ paths:
           description: Contact lead not found
 components:
   schemas:
+    HomeFeatureIcon:
+      type: string
+      enum: [users, shield, target, trend, youtube, facebook, tiktok, pin, video, sparkles]
+    HomeChartMonth:
+      type: object
+      additionalProperties: false
+      properties:
+        month:
+          type: string
+          minLength: 1
+          maxLength: 16
+        earnings:
+          type: integer
+          minimum: 0
+          maximum: 1000000000
+        bonus:
+          type: integer
+          minimum: 0
+          maximum: 1000000000
+      required: [month, earnings, bonus]
+    HomeChartPlatform:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 40
+        amount:
+          type: string
+          minLength: 1
+          maxLength: 40
+      required: [name, amount]
+    HomeFeatureCard:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        icon:
+          $ref: "#/components/schemas/HomeFeatureIcon"
+      required: [title, description, icon]
+    HomeOpportunityStep:
+      type: object
+      additionalProperties: false
+      properties:
+        number:
+          type: string
+          minLength: 1
+          maxLength: 12
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+      required: [number, title, description]
+    HomeIconText:
+      type: object
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 200
+        icon:
+          $ref: "#/components/schemas/HomeFeatureIcon"
+      required: [text, icon]
+    HomeValueCard:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+      required: [title, description]
+    HomeTestimonial:
+      type: object
+      additionalProperties: false
+      properties:
+        quote:
+          type: string
+          minLength: 1
+          maxLength: 1500
+        source:
+          type: string
+          minLength: 1
+          maxLength: 120
+        platform:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required: [quote, source, platform]
+    HomePageContent:
+      type: object
+      additionalProperties: false
+      properties:
+        hero:
+          type: object
+          additionalProperties: false
+          properties:
+            brandTitle: { type: string, minLength: 1, maxLength: 100 }
+            brandSubtitle: { type: string, minLength: 1, maxLength: 100 }
+            badge: { type: string, minLength: 1, maxLength: 240 }
+            intro: { type: string, minLength: 1, maxLength: 1000 }
+            primaryCta: { type: string, minLength: 1, maxLength: 80 }
+            secondaryCta: { type: string, minLength: 1, maxLength: 80 }
+            chartTitle: { type: string, minLength: 1, maxLength: 160 }
+            chartTotal: { type: string, minLength: 1, maxLength: 60 }
+            chartGrowth: { type: string, minLength: 1, maxLength: 30 }
+            chartGrowthCaption: { type: string, minLength: 1, maxLength: 80 }
+            chartMonths:
+              type: array
+              maxItems: 12
+              items: { $ref: "#/components/schemas/HomeChartMonth" }
+            chartPlatforms:
+              type: array
+              maxItems: 6
+              items: { $ref: "#/components/schemas/HomeChartPlatform" }
+            chartDisclaimer: { type: string, minLength: 1, maxLength: 300 }
+            marquee:
+              type: array
+              maxItems: 12
+              items: { type: string, minLength: 1, maxLength: 80 }
+          required: [brandTitle, brandSubtitle, badge, intro, primaryCta, secondaryCta, chartTitle, chartTotal, chartGrowth, chartGrowthCaption, chartMonths, chartPlatforms, chartDisclaimer, marquee]
+        trust:
+          type: object
+          additionalProperties: false
+          properties:
+            title: { type: string, minLength: 1, maxLength: 240 }
+            cards:
+              type: array
+              maxItems: 12
+              items: { $ref: "#/components/schemas/HomeFeatureCard" }
+          required: [title, cards]
+        opportunity:
+          type: object
+          additionalProperties: false
+          properties:
+            title: { type: string, minLength: 1, maxLength: 240 }
+            steps:
+              type: array
+              maxItems: 12
+              items: { $ref: "#/components/schemas/HomeOpportunityStep" }
+          required: [title, steps]
+        services:
+          type: object
+          additionalProperties: false
+          properties:
+            title: { type: string, minLength: 1, maxLength: 240 }
+            allServicesLabel: { type: string, minLength: 1, maxLength: 80 }
+            cards:
+              type: array
+              maxItems: 12
+              items: { $ref: "#/components/schemas/ServiceCardContent" }
+          required: [title, allServicesLabel, cards]
+        story:
+          type: object
+          additionalProperties: false
+          properties:
+            title: { type: string, minLength: 1, maxLength: 160 }
+            highlight: { type: string, minLength: 1, maxLength: 120 }
+            intro: { type: string, minLength: 1, maxLength: 1000 }
+            detail: { type: string, minLength: 1, maxLength: 1000 }
+            benefits:
+              type: array
+              maxItems: 6
+              items: { $ref: "#/components/schemas/HomeIconText" }
+            ctaLabel: { type: string, minLength: 1, maxLength: 80 }
+          required: [title, highlight, intro, detail, benefits, ctaLabel]
+        values:
+          type: object
+          additionalProperties: false
+          properties:
+            title: { type: string, minLength: 1, maxLength: 240 }
+            cards:
+              type: array
+              maxItems: 12
+              items: { $ref: "#/components/schemas/HomeValueCard" }
+          required: [title, cards]
+        testimonials:
+          type: object
+          additionalProperties: false
+          properties:
+            title: { type: string, minLength: 1, maxLength: 240 }
+            description: { type: string, minLength: 1, maxLength: 1000 }
+            cards:
+              type: array
+              maxItems: 20
+              items: { $ref: "#/components/schemas/HomeTestimonial" }
+          required: [title, description, cards]
+        faq:
+          type: object
+          additionalProperties: false
+          properties:
+            askLabel: { type: string, minLength: 1, maxLength: 80 }
+          required: [askLabel]
+        contact:
+          type: object
+          additionalProperties: false
+          properties:
+            title: { type: string, minLength: 1, maxLength: 240 }
+            description: { type: string, minLength: 1, maxLength: 1000 }
+            whatsappLabel: { type: string, minLength: 1, maxLength: 80 }
+            whatsappHint: { type: string, minLength: 1, maxLength: 240 }
+            whatsappUrl: { type: string, minLength: 1, maxLength: 500 }
+          required: [title, description, whatsappLabel, whatsappHint, whatsappUrl]
+        footer:
+          type: object
+          additionalProperties: false
+          properties:
+            description: { type: string, minLength: 1, maxLength: 1000 }
+            exploreLabel: { type: string, minLength: 1, maxLength: 80 }
+            helloLabel: { type: string, minLength: 1, maxLength: 80 }
+            primaryPhone: { type: string, minLength: 1, maxLength: 32 }
+            secondaryPhone: { type: string, minLength: 1, maxLength: 32 }
+            email: { type: string, format: email, maxLength: 254 }
+            address: { type: string, minLength: 1, maxLength: 300 }
+            copyright: { type: string, minLength: 1, maxLength: 300 }
+            tagline: { type: string, minLength: 1, maxLength: 160 }
+          required: [description, exploreLabel, helloLabel, primaryPhone, secondaryPhone, email, address, copyright, tagline]
+      required: [hero, trust, opportunity, services, story, values, testimonials, faq, contact, footer]
+    ContactPageContent:
+      type: object
+      additionalProperties: false
+      properties:
+        heroKicker: { type: string, minLength: 1, maxLength: 120 }
+        heroTitle: { type: string, minLength: 1, maxLength: 240 }
+        heroIntro: { type: string, minLength: 1, maxLength: 1000 }
+        formLabel: { type: string, minLength: 1, maxLength: 120 }
+        formTitle: { type: string, minLength: 1, maxLength: 240 }
+        directLabel: { type: string, minLength: 1, maxLength: 120 }
+        directDescription: { type: string, minLength: 1, maxLength: 500 }
+        primaryPhoneLabel: { type: string, minLength: 1, maxLength: 80 }
+        primaryPhone: { type: string, minLength: 1, maxLength: 32 }
+        secondaryPhoneLabel: { type: string, minLength: 1, maxLength: 80 }
+        secondaryPhone: { type: string, minLength: 1, maxLength: 32 }
+        emailLabel: { type: string, minLength: 1, maxLength: 80 }
+        email: { type: string, format: email, maxLength: 254 }
+        locationLabel: { type: string, minLength: 1, maxLength: 80 }
+        address: { type: string, minLength: 1, maxLength: 300 }
+        whatsappUrl: { type: string, format: uri, maxLength: 500 }
+      required: [heroKicker, heroTitle, heroIntro, formLabel, formTitle, directLabel, directDescription, primaryPhoneLabel, primaryPhone, secondaryPhoneLabel, secondaryPhone, emailLabel, email, locationLabel, address, whatsappUrl]
     HealthStatus:
       type: object
       properties:
@@ -435,6 +1272,330 @@ components:
           minLength: 1
           maxLength: 80
       required: [title, category, description, tag]
+    PromptInput:
+      type: object
+      additionalProperties: false
+      properties:
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 180
+          pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        title:
+          type: string
+          minLength: 3
+          maxLength: 180
+        category:
+          type: string
+          minLength: 1
+          maxLength: 80
+        access:
+          type: string
+          enum: [Free, Premium]
+        placement:
+          type: string
+          enum: [hero, main, both]
+        image:
+          type: string
+          minLength: 1
+          maxLength: 2000000
+        promptText:
+          type: string
+          maxLength: 20000
+        promptFileName:
+          type: string
+          maxLength: 255
+        promptFileData:
+          type: string
+          maxLength: 3000000
+        removePromptFile:
+          type: boolean
+        isPublished:
+          type: boolean
+        sortOrder:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+      required: [slug, title, category, access, placement, image, promptText, isPublished, sortOrder]
+    PromptCard:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        access:
+          type: string
+          enum: [Free, Premium]
+        placement:
+          type: string
+          enum: [hero, main, both]
+        image:
+          type: string
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, slug, title, category, access, placement, image, sortOrder, createdAt]
+    PromptDetail:
+      allOf:
+        - $ref: "#/components/schemas/PromptCard"
+        - type: object
+          properties:
+            promptText:
+              type: [string, "null"]
+            promptFileName:
+              type: [string, "null"]
+            hasDownloadableFile:
+              type: boolean
+          required: [promptText, promptFileName, hasDownloadableFile]
+    Prompt:
+      allOf:
+        - $ref: "#/components/schemas/PromptInput"
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+          required: [id, createdAt, updatedAt]
+    TeamMemberInput:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        role:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        image:
+          type: string
+          minLength: 1
+          maxLength: 200000
+        isPublished:
+          type: boolean
+        sortOrder:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+      required: [name, role, description, image, isPublished, sortOrder]
+    TeamMember:
+      allOf:
+        - $ref: "#/components/schemas/TeamMemberInput"
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+          required: [id, createdAt, updatedAt]
+    AboutContent:
+      type: object
+      additionalProperties: false
+      properties:
+        heroKicker:
+          type: string
+          minLength: 1
+          maxLength: 120
+        heroTitle:
+          type: string
+          minLength: 1
+          maxLength: 240
+        heroIntro:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        storyLabel:
+          type: string
+          minLength: 1
+          maxLength: 120
+        storyTitle:
+          type: string
+          minLength: 1
+          maxLength: 240
+        storyBody:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        storyImage:
+          type: string
+          maxLength: 200000
+        storyCaption:
+          type: string
+          maxLength: 240
+        missionLabel:
+          type: string
+          minLength: 1
+          maxLength: 120
+        missionTitle:
+          type: string
+          minLength: 1
+          maxLength: 240
+        missionBody:
+          type: string
+          minLength: 1
+          maxLength: 3000
+        missionImage:
+          type: string
+          maxLength: 200000
+        missionCaption:
+          type: string
+          maxLength: 240
+      required: [heroKicker, heroTitle, heroIntro, storyLabel, storyTitle, storyBody, storyImage, storyCaption, missionLabel, missionTitle, missionBody, missionImage, missionCaption]
+    ServiceCardContent:
+      type: object
+      additionalProperties: false
+      properties:
+        number:
+          type: string
+          minLength: 1
+          maxLength: 12
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        icon:
+          type: string
+          enum: [youtube, users, video, clapperboard, sparkles]
+        logo:
+          type: string
+          maxLength: 200000
+        features:
+          type: array
+          maxItems: 12
+          items:
+            type: string
+            minLength: 1
+            maxLength: 180
+        ctaLabel:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required: [number, title, description, icon, features, ctaLabel]
+    ServiceProcessStep:
+      type: object
+      additionalProperties: false
+      properties:
+        number:
+          type: string
+          minLength: 1
+          maxLength: 12
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+      required: [number, title, description]
+    ServicesPageContent:
+      type: object
+      additionalProperties: false
+      properties:
+        heroKicker:
+          type: string
+          minLength: 1
+          maxLength: 120
+        heroTitle:
+          type: string
+          minLength: 1
+          maxLength: 240
+        heroIntro:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        servicesLabel:
+          type: string
+          minLength: 1
+          maxLength: 120
+        servicesTitle:
+          type: string
+          minLength: 1
+          maxLength: 240
+        serviceCards:
+          type: array
+          maxItems: 12
+          items:
+            $ref: "#/components/schemas/ServiceCardContent"
+        processLabel:
+          type: string
+          minLength: 1
+          maxLength: 120
+        processTitle:
+          type: string
+          minLength: 1
+          maxLength: 240
+        processSteps:
+          type: array
+          maxItems: 12
+          items:
+            $ref: "#/components/schemas/ServiceProcessStep"
+      required: [heroKicker, heroTitle, heroIntro, servicesLabel, servicesTitle, serviceCards, processLabel, processTitle, processSteps]
+    FAQEntry:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+        question:
+          type: string
+          minLength: 1
+          maxLength: 300
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 3000
+        isPublished:
+          type: boolean
+      required: [id, question, answer, isPublished]
+    FAQPageContent:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 240
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        faqs:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/FAQEntry"
+      required: [title, description, faqs]
     SharedIdea:
       allOf:
         - $ref: "#/components/schemas/SharedIdeaInput"
@@ -450,7 +1611,18 @@ components:
               type: string
               minLength: 1
               maxLength: 100
-          required: [id, createdAt, postedBy]
+            status:
+              type: string
+              enum: [pending, approved, rejected]
+          required: [id, createdAt, postedBy, status]
+    SharedIdeaStatusInput:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+      required: [status]
     AdminLoginInput:
       type: object
       additionalProperties: false

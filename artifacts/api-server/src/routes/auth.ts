@@ -82,14 +82,26 @@ router.post("/auth/login", loginLimiter, async (req, res): Promise<void> => {
     res.status(401).json({ error: "Incorrect email or password." });
     return;
   }
+  if (!user.isActive) {
+    res.status(403).json({ error: "This account is inactive. Please contact support." });
+    return;
+  }
 
   const identity = { id: user.id, name: user.name, email: user.email };
   createUserSession(res, identity);
   res.json(MemberLoginResponse.parse({ authenticated: true, user: identity }));
 });
 
-router.get("/auth/session", (req, res): void => {
-  const user = readUserSession(req);
+router.get("/auth/session", async (req, res): Promise<void> => {
+  const sessionUser = readUserSession(req);
+  const [account] = sessionUser
+    ? await db
+        .select({ isActive: skUsersTable.isActive })
+        .from(skUsersTable)
+        .where(eq(skUsersTable.id, sessionUser.id))
+        .limit(1)
+    : [];
+  const user = account?.isActive ? sessionUser : null;
   res.json(
     GetMemberSessionResponse.parse({ authenticated: Boolean(user), user }),
   );

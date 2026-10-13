@@ -55,9 +55,12 @@ Copy `.env.example` to `.env` for local-only configuration, then provide a Postg
 ```sh
 pnpm install
 pnpm --filter @workspace/db run push
+pnpm --filter @workspace/scripts run seed:prompts
 pnpm --filter @workspace/api-server run dev
 pnpm --filter @workspace/sk-media-monetization run dev
 ```
+
+The prompt catalog is stored in PostgreSQL. The seed command imports the original eight prompts once (existing slugs are left unchanged). After admin sign-in, manage prompt copy, images, categories, access level, featured order, and publish status at `/admin/prompts`. Prompt content can be entered as text, attached as a downloadable PDF/TXT/MD/DOC/DOCX/RTF file (up to 2 MB), or provided in both formats. Run the database schema push after updating the application so the prompt-file columns are created. Published cards remain public; Premium prompt content and attachments follow the existing Premium access gate.
 
 The API is mounted at `/api`; the website is served at `/`. Member sessions are stored in an HTTP-only cookie and expire after eight hours. Registration and login are rate-limited. To regenerate API types after changing `lib/api-spec/openapi.yaml`:
 

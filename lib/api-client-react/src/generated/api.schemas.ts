@@ -5,6 +5,497 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type HomeFeatureIcon = typeof HomeFeatureIcon[keyof typeof HomeFeatureIcon];
+
+
+export const HomeFeatureIcon = {
+  users: 'users',
+  shield: 'shield',
+  target: 'target',
+  trend: 'trend',
+  youtube: 'youtube',
+  facebook: 'facebook',
+  tiktok: 'tiktok',
+  pin: 'pin',
+  video: 'video',
+  sparkles: 'sparkles',
+} as const;
+
+export interface HomeChartMonth {
+  /**
+     * @minLength 1
+     * @maxLength 16
+     */
+  month: string;
+  /**
+     * @minimum 0
+     * @maximum 1000000000
+     */
+  earnings: number;
+  /**
+     * @minimum 0
+     * @maximum 1000000000
+     */
+  bonus: number;
+}
+
+export interface HomeChartPlatform {
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  name: string;
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  amount: string;
+}
+
+export interface HomeFeatureCard {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+  icon: HomeFeatureIcon;
+}
+
+export interface HomeOpportunityStep {
+  /**
+     * @minLength 1
+     * @maxLength 12
+     */
+  number: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+}
+
+export interface HomeIconText {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  text: string;
+  icon: HomeFeatureIcon;
+}
+
+export interface HomeValueCard {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+}
+
+export interface HomeTestimonial {
+  /**
+     * @minLength 1
+     * @maxLength 1500
+     */
+  quote: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  source: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  platform: string;
+}
+
+export type HomePageContentHero = {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  brandTitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  brandSubtitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  badge: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  intro: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  primaryCta: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  secondaryCta: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  chartTitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 60
+     */
+  chartTotal: string;
+  /**
+     * @minLength 1
+     * @maxLength 30
+     */
+  chartGrowth: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  chartGrowthCaption: string;
+  /** @maxItems 12 */
+  chartMonths: HomeChartMonth[];
+  /** @maxItems 6 */
+  chartPlatforms: HomeChartPlatform[];
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  chartDisclaimer: string;
+  /**
+     * @maxItems 12
+     * @items.minLength 1
+     * @items.maxLength 80
+     */
+  marquee: string[];
+};
+
+export type HomePageContentTrust = {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  title: string;
+  /** @maxItems 12 */
+  cards: HomeFeatureCard[];
+};
+
+export type HomePageContentOpportunity = {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  title: string;
+  /** @maxItems 12 */
+  steps: HomeOpportunityStep[];
+};
+
+export type ServiceCardContentIcon = typeof ServiceCardContentIcon[keyof typeof ServiceCardContentIcon];
+
+
+export const ServiceCardContentIcon = {
+  youtube: 'youtube',
+  users: 'users',
+  video: 'video',
+  clapperboard: 'clapperboard',
+  sparkles: 'sparkles',
+} as const;
+
+export interface ServiceCardContent {
+  /**
+     * @minLength 1
+     * @maxLength 12
+     */
+  number: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+  icon: ServiceCardContentIcon;
+  /** @maxLength 200000 */
+  logo?: string;
+  /**
+     * @maxItems 12
+     * @items.minLength 1
+     * @items.maxLength 180
+     */
+  features: string[];
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  ctaLabel: string;
+}
+
+export type HomePageContentServices = {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  allServicesLabel: string;
+  /** @maxItems 12 */
+  cards: ServiceCardContent[];
+};
+
+export type HomePageContentStory = {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  highlight: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  intro: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  detail: string;
+  /** @maxItems 6 */
+  benefits: HomeIconText[];
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  ctaLabel: string;
+};
+
+export type HomePageContentValues = {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  title: string;
+  /** @maxItems 12 */
+  cards: HomeValueCard[];
+};
+
+export type HomePageContentTestimonials = {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+  /** @maxItems 20 */
+  cards: HomeTestimonial[];
+};
+
+export type HomePageContentFaq = {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  askLabel: string;
+};
+
+export type HomePageContentContact = {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  whatsappLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  whatsappHint: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  whatsappUrl: string;
+};
+
+export type HomePageContentFooter = {
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  exploreLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  helloLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
+  primaryPhone: string;
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
+  secondaryPhone: string;
+  /** @maxLength 254 */
+  email: string;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  address: string;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  copyright: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  tagline: string;
+};
+
+export interface HomePageContent {
+  hero: HomePageContentHero;
+  trust: HomePageContentTrust;
+  opportunity: HomePageContentOpportunity;
+  services: HomePageContentServices;
+  story: HomePageContentStory;
+  values: HomePageContentValues;
+  testimonials: HomePageContentTestimonials;
+  faq: HomePageContentFaq;
+  contact: HomePageContentContact;
+  footer: HomePageContentFooter;
+}
+
+export interface ContactPageContent {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  heroKicker: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  heroTitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  heroIntro: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  formLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  formTitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  directLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  directDescription: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  primaryPhoneLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
+  primaryPhone: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  secondaryPhoneLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 32
+     */
+  secondaryPhone: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  emailLabel: string;
+  /** @maxLength 254 */
+  email: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  locationLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  address: string;
+  /** @maxLength 500 */
+  whatsappUrl: string;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -103,6 +594,290 @@ export interface SharedIdeaInput {
      * @maxLength 80
      */
   tag: string;
+}
+
+export type PromptInputAccess = typeof PromptInputAccess[keyof typeof PromptInputAccess];
+
+
+export const PromptInputAccess = {
+  Free: 'Free',
+  Premium: 'Premium',
+} as const;
+
+export type PromptInputPlacement = typeof PromptInputPlacement[keyof typeof PromptInputPlacement];
+
+
+export const PromptInputPlacement = {
+  hero: 'hero',
+  main: 'main',
+  both: 'both',
+} as const;
+
+export interface PromptInput {
+  /**
+     * @minLength 1
+     * @maxLength 180
+     * @pattern ^[a-z0-9]+(?:-[a-z0-9]+)*$
+     */
+  slug: string;
+  /**
+     * @minLength 3
+     * @maxLength 180
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  category: string;
+  access: PromptInputAccess;
+  placement: PromptInputPlacement;
+  /**
+     * @minLength 1
+     * @maxLength 2000000
+     */
+  image: string;
+  /** @maxLength 20000 */
+  promptText: string;
+  /** @maxLength 255 */
+  promptFileName?: string;
+  /** @maxLength 3000000 */
+  promptFileData?: string;
+  removePromptFile?: boolean;
+  isPublished: boolean;
+  /**
+     * @minimum 0
+     * @maximum 1000000
+     */
+  sortOrder: number;
+}
+
+export type PromptCardAccess = typeof PromptCardAccess[keyof typeof PromptCardAccess];
+
+
+export const PromptCardAccess = {
+  Free: 'Free',
+  Premium: 'Premium',
+} as const;
+
+export type PromptCardPlacement = typeof PromptCardPlacement[keyof typeof PromptCardPlacement];
+
+
+export const PromptCardPlacement = {
+  hero: 'hero',
+  main: 'main',
+  both: 'both',
+} as const;
+
+export interface PromptCard {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  access: PromptCardAccess;
+  placement: PromptCardPlacement;
+  image: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export type PromptDetail = PromptCard & ({
+  /** @nullable */
+  promptText: string | null;
+  /** @nullable */
+  promptFileName: string | null;
+  hasDownloadableFile: boolean;
+});
+
+export type Prompt = PromptInput & {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export interface TeamMemberInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  name: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  role: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  description: string;
+  /**
+     * @minLength 1
+     * @maxLength 200000
+     */
+  image: string;
+  isPublished: boolean;
+  /**
+     * @minimum 0
+     * @maximum 1000000
+     */
+  sortOrder: number;
+}
+
+export type TeamMember = TeamMemberInput & {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export interface AboutContent {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  heroKicker: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  heroTitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  heroIntro: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  storyLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  storyTitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  storyBody: string;
+  /** @maxLength 200000 */
+  storyImage: string;
+  /** @maxLength 240 */
+  storyCaption: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  missionLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  missionTitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 3000
+     */
+  missionBody: string;
+  /** @maxLength 200000 */
+  missionImage: string;
+  /** @maxLength 240 */
+  missionCaption: string;
+}
+
+export interface ServiceProcessStep {
+  /**
+     * @minLength 1
+     * @maxLength 12
+     */
+  number: string;
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+}
+
+export interface ServicesPageContent {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  heroKicker: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  heroTitle: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  heroIntro: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  servicesLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  servicesTitle: string;
+  /** @maxItems 12 */
+  serviceCards: ServiceCardContent[];
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  processLabel: string;
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  processTitle: string;
+  /** @maxItems 12 */
+  processSteps: ServiceProcessStep[];
+}
+
+export interface FAQEntry {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  id: string;
+  /**
+     * @minLength 1
+     * @maxLength 300
+     */
+  question: string;
+  /**
+     * @minLength 1
+     * @maxLength 3000
+     */
+  answer: string;
+  isPublished: boolean;
+}
+
+export interface FAQPageContent {
+  /**
+     * @minLength 1
+     * @maxLength 240
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  description: string;
+  /** @maxItems 50 */
+  faqs: FAQEntry[];
 }
 
 export type SharedIdeaStatus = typeof SharedIdeaStatus[keyof typeof SharedIdeaStatus];

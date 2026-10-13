@@ -12,17 +12,23 @@ import {
   CreateSharedIdeaResponse,
   DeleteContactParams,
   DeleteContactResponse,
+  DeleteSharedIdeaParams,
+  DeleteSharedIdeaResponse,
   GetAdminSessionResponse,
   UpdateAdminProfileBody,
   UpdateAdminProfileResponse,
   GetContactSummaryResponse,
   GetContactsResponse,
   GetSharedIdeasResponse,
+  GetAllSharedIdeasResponse,
   UpdateContactStatusBody,
   UpdateContactStatusParams,
   UpdateContactStatusResponse,
+  UpdateSharedIdeaStatusBody,
+  UpdateSharedIdeaStatusParams,
+  UpdateSharedIdeaStatusResponse,
 } from "@workspace/api-zod";
-import { db, skAdminsTable, skContactsTable, skIdeasTable } from "@workspace/db";
+import { db, skAdminsTable, skContactsTable, skIdeasTable, skUsersTable } from "@workspace/db";
 import {
   clearAdminSession,
   createAdminSession,
@@ -91,6 +97,100 @@ router.get("/admin/session", async (req, res): Promise<void> => {
         : { authenticated: false, username: null, email: null },
     ),
   );
+});
+
+router.get("/admin/users", requireAdmin, async (_req, res): Promise<void> => {
+  const users = await db
+    .select({ id: skUsersTable.id, name: skUsersTable.name, email: skUsersTable.email, isActive: skUsersTable.isActive, createdAt: skUsersTable.createdAt })
+    .from(skUsersTable)
+    .orderBy(desc(skUsersTable.createdAt));
+
+  res.json(users);
+});
+
+router.patch("/admin/users/:id", requireAdmin, async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const body = req.body as { name?: unknown; email?: unknown; isActive?: unknown };
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    res.status(400).json({ error: "Invalid user ID." });
+    return;
+  }
+  if (name.length < 2 || name.length > 100 || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    res.status(400).json({ error: "Enter a valid name and email address." });
+    return;
+  }
+  if (body.isActive !== undefined && typeof body.isActive !== "boolean") {
+    res.status(400).json({ error: "Choose whether the account is active." });
+    return;
+  }
+
+  const [existingUser] = await db
+    .select({ id: skUsersTable.id })
+    .from(skUsersTable)
+    .where(eq(skUsersTable.email, email))
+    .limit(1);
+  if (existingUser && existingUser.id !== id) {
+    res.status(409).json({ error: "That email address is already assigned to another user." });
+    return;
+  }
+
+  const [updatedUser] = await db
+    .update(skUsersTable)
+    .set({ name, email, ...(typeof body.isActive === "boolean" ? { isActive: body.isActive } : {}) })
+    .where(eq(skUsersTable.id, id))
+    .returning({ id: skUsersTable.id, name: skUsersTable.name, email: skUsersTable.email, isActive: skUsersTable.isActive, createdAt: skUsersTable.createdAt });
+  if (!updatedUser) {
+    res.status(404).json({ error: "User not found." });
+    return;
+  }
+
+  res.json(updatedUser);
+});
+
+router.delete("/admin/users/:id", requireAdmin, async (req, res): Promise<void> => {
+  const id = req.params.id;
+  if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    res.status(400).json({ error: "Invalid user ID." });
+    return;
+  }
+
+  const [deletedUser] = await db
+    .delete(skUsersTable)
+    .where(eq(skUsersTable.id, id))
+    .returning({ id: skUsersTable.id });
+  if (!deletedUser) {
+    res.status(404).json({ error: "User not found." });
+    return;
+  }
+
+  res.status(204).end();
+});
+
+router.patch("/admin/users/:id/status", requireAdmin, async (req, res): Promise<void> => {
+  const id = req.params.id;
+  const body = req.body as { isActive?: unknown };
+  if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    res.status(400).json({ error: "Invalid user ID." });
+    return;
+  }
+  if (typeof body.isActive !== "boolean") {
+    res.status(400).json({ error: "Choose whether the account is active." });
+    return;
+  }
+
+  const [updatedUser] = await db
+    .update(skUsersTable)
+    .set({ isActive: body.isActive })
+    .where(eq(skUsersTable.id, id))
+    .returning({ id: skUsersTable.id, isActive: skUsersTable.isActive });
+  if (!updatedUser) {
+    res.status(404).json({ error: "User not found." });
+    return;
+  }
+
+  res.json(updatedUser);
 });
 
 router.patch("/admin/profile", requireAdmin, async (req, res): Promise<void> => {
@@ -175,9 +275,22 @@ router.post("/admin/change-password", requireAdmin, async (req, res): Promise<vo
 });
 
 router.get("/ideas", async (_req, res): Promise<void> => {
-  const ideas = await db.select().from(skIdeasTable).orderBy(desc(skIdeasTable.createdAt));
+  const ideas = await db
+    .select()
+    .from(skIdeasTable)
+    .where(eq(skIdeasTable.status, "approved"))
+    .orderBy(desc(skIdeasTable.createdAt));
   res.json(
     GetSharedIdeasResponse.parse(
+      ideas.map((idea) => ({ ...idea, createdAt: idea.createdAt.toISOString() })),
+    ),
+  );
+});
+
+router.get("/ideas/all", requireAdmin, async (_req, res): Promise<void> => {
+  const ideas = await db.select().from(skIdeasTable).orderBy(desc(skIdeasTable.createdAt));
+  res.json(
+    GetAllSharedIdeasResponse.parse(
       ideas.map((idea) => ({ ...idea, createdAt: idea.createdAt.toISOString() })),
     ),
   );
@@ -200,11 +313,62 @@ router.post("/ideas", async (req, res): Promise<void> => {
 
   const [idea] = await db
     .insert(skIdeasTable)
-    .values({ ...parsed.data, postedBy: creator.name })
+    .values({
+      ...parsed.data,
+      postedBy: creator.name,
+      status: admin ? "approved" : "pending",
+    })
     .returning();
   res.status(201).json(
     CreateSharedIdeaResponse.parse({ ...idea, createdAt: idea.createdAt.toISOString() }),
   );
+});
+
+router.patch("/ideas/:id/status", requireAdmin, async (req, res): Promise<void> => {
+  const params = UpdateSharedIdeaStatusParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid idea id." });
+    return;
+  }
+
+  const body = UpdateSharedIdeaStatusBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: "Choose a valid idea status." });
+    return;
+  }
+
+  const [idea] = await db
+    .update(skIdeasTable)
+    .set({ status: body.data.status })
+    .where(eq(skIdeasTable.id, params.data.id))
+    .returning();
+  if (!idea) {
+    res.status(404).json({ error: "Idea not found." });
+    return;
+  }
+
+  res.json(
+    UpdateSharedIdeaStatusResponse.parse({ ...idea, createdAt: idea.createdAt.toISOString() }),
+  );
+});
+
+router.delete("/ideas/:id", requireAdmin, async (req, res): Promise<void> => {
+  const params = DeleteSharedIdeaParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid idea id." });
+    return;
+  }
+
+  const [deleted] = await db
+    .delete(skIdeasTable)
+    .where(eq(skIdeasTable.id, params.data.id))
+    .returning({ id: skIdeasTable.id });
+  if (!deleted) {
+    res.status(404).json({ error: "Idea not found." });
+    return;
+  }
+
+  res.json(DeleteSharedIdeaResponse.parse({ success: true }));
 });
 
 router.get("/contacts", requireAdmin, async (req, res): Promise<void> => {

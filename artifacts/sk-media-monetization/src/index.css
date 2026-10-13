@@ -362,8 +362,8 @@ body { background: #f5f4ef; }
 #root .public-light-theme > section [class*="text-black"] {
   color: #4e4a42 !important;
 }
-#root .public-light-theme main [class*="text-white"]:not(.prompt-premium-badge):not(.prompt-category-badge):not(.prompt-copy-button):not(.prompt-search-button):not(.prompt-filter-button):not(.prompt-marquee-title):not(.join-premium-badge):not(.join-payment-cta):not(.join-upi-cta),
-#root .public-light-theme > section [class*="text-white"]:not(.prompt-premium-badge):not(.prompt-category-badge):not(.prompt-copy-button):not(.prompt-search-button):not(.prompt-filter-button):not(.prompt-marquee-title):not(.join-premium-badge):not(.join-payment-cta):not(.join-upi-cta) {
+#root .public-light-theme main [class*="text-white"]:not(.prompt-premium-badge):not(.prompt-category-badge):not(.prompt-copy-button):not(.prompt-image-download):not(.prompt-search-button):not(.prompt-filter-button):not(.prompt-access-filter):not(.prompt-marquee-title):not(.join-premium-badge):not(.join-payment-cta):not(.join-upi-cta),
+#root .public-light-theme > section [class*="text-white"]:not(.prompt-premium-badge):not(.prompt-category-badge):not(.prompt-copy-button):not(.prompt-image-download):not(.prompt-search-button):not(.prompt-filter-button):not(.prompt-access-filter):not(.prompt-marquee-title):not(.join-premium-badge):not(.join-payment-cta):not(.join-upi-cta) {
   color: #39362f !important;
 }
 #root .public-light-theme main [class*="text-white"][class*="bg-red-"],
@@ -399,8 +399,18 @@ body { background: #f5f4ef; }
   background-color: #090909 !important;
   color: #fff !important;
 }
+#root .public-light-theme .prompt-image-download,
+#root .public-light-theme .prompt-image-download:hover {
+  background-color: rgba(9,9,9,.88) !important;
+  color: #fff !important;
+}
 #root .public-light-theme .prompt-search-button,
 #root .public-light-theme .prompt-filter-button[aria-pressed="true"] {
+  background-color: #090909 !important;
+  border-color: #090909 !important;
+  color: #fff !important;
+}
+#root .public-light-theme .prompt-access-filter[aria-pressed="true"] {
   background-color: #090909 !important;
   border-color: #090909 !important;
   color: #fff !important;
@@ -422,7 +432,7 @@ body { background: #f5f4ef; }
   text-shadow: 0 1px 3px rgba(0,0,0,.9);
 }
 .prompt-marquee-track {
-  animation: prompt-marquee-scroll 52s linear infinite;
+  animation: prompt-marquee-scroll 10s linear infinite;
 }
 .prompt-marquee-viewport:hover .prompt-marquee-track,
 .prompt-marquee-viewport:focus-within .prompt-marquee-track {
@@ -441,3 +451,6 @@ body { background: #f5f4ef; }
 #root #root .earnings-card :not(svg):not(svg *) { color: #fff !important; }
 #root #root .earnings-card > div:first-child > span { color: #ffd700 !important; }
 #root #root .earnings-card svg text { fill: #fff !important; }
+
+/* Contact method names are intentionally omitted; show the values only. */
+.section-pad aside small { display: none; }
