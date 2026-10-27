@@ -10,6 +10,7 @@ import servicesContentRouter from "./services-content";
 import faqRouter from "./faqs";
 import homeContentRouter from "./home-content";
 import contactContentRouter from "./contact-content";
+import communityPlansRouter from "./community-plans";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(servicesContentRouter);
 router.use(faqRouter);
 router.use(homeContentRouter);
 router.use(contactContentRouter);
+router.use(communityPlansRouter);
 
 export default router;

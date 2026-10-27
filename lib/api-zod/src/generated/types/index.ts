@@ -13,6 +13,8 @@ export * from './adminProfileInput';
 export * from './adminSession';
 export * from './changeAdminPassword200';
 export * from './changeAdminPasswordInput';
+export * from './communityPlan';
+export * from './communityPlansContent';
 export * from './contact';
 export * from './contactInput';
 export * from './contactInputPlatform';

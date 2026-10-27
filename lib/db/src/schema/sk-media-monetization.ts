@@ -253,11 +253,35 @@ export interface FAQEntry {
   isPublished: boolean;
 }
 
+export interface CommunityPlan {
+  isActive: boolean;
+  title: string;
+  description: string;
+  priceUsd: number;
+  pricePkr: number;
+  billingPeriod: string;
+  buttonLabel: string;
+  features: string[];
+}
+
+export interface CommunityPlansContent {
+  freePlan: CommunityPlan;
+  premiumPlan: CommunityPlan;
+  whatsappGroupUrl: string;
+  whatsappChannelUrl: string;
+}
+
 export const skFaqContentTable = pgTable("sk_faq_content", {
   id: integer("id").primaryKey().default(1),
   title: text("title").notNull().default("Your Questions, Answered Clearly"),
   description: text("description").notNull().default("Still deciding if we’re the right fit? Start here."),
   faqs: jsonb("faqs").$type<FAQEntry[]>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const skCommunityPlansTable = pgTable("sk_community_plans", {
+  id: integer("id").primaryKey().default(1),
+  content: jsonb("content").$type<CommunityPlansContent>().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

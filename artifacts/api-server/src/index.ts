@@ -1,4 +1,6 @@
 import "dotenv/config";
+import { sql } from "drizzle-orm";
+import { db } from "@workspace/db";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { verifySmtpConnection } from "./lib/lead-email";
@@ -22,7 +24,14 @@ if (!process.env.SESSION_SECRET) {
   throw new Error("SESSION_SECRET must be configured before starting the API server");
 }
 
-void provisionInitialAdmin()
+void db.execute(sql`
+  CREATE TABLE IF NOT EXISTS sk_community_plans (
+    id integer PRIMARY KEY DEFAULT 1,
+    content jsonb NOT NULL,
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )
+`)
+  .then(() => provisionInitialAdmin())
   .then(async () => {
     const smtp = await verifySmtpConnection();
     if (smtp.status === "verified") {
@@ -43,6 +52,6 @@ void provisionInitialAdmin()
     });
   })
   .catch((err: unknown) => {
-    logger.error({ err }, "Unable to initialize the admin account");
+    logger.error({ err }, "Unable to initialize API prerequisites");
     process.exit(1);
   });

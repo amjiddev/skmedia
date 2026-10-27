@@ -1506,6 +1506,288 @@ export const GetFaqsResponse = zod.object({
 
 
 /**
+ * @summary Get public community membership plans
+ */
+export const getCommunityPlansResponseFreePlanTitleMax = 120;
+
+export const getCommunityPlansResponseFreePlanDescriptionMax = 500;
+
+export const getCommunityPlansResponseFreePlanPriceUsdMin = 0;
+export const getCommunityPlansResponseFreePlanPriceUsdMax = 1000000;
+
+export const getCommunityPlansResponseFreePlanPricePkrMin = 0;
+export const getCommunityPlansResponseFreePlanPricePkrMax = 100000000;
+
+export const getCommunityPlansResponseFreePlanBillingPeriodMax = 40;
+
+export const getCommunityPlansResponseFreePlanButtonLabelMax = 100;
+
+export const getCommunityPlansResponseFreePlanFeaturesItemMax = 240;
+
+export const getCommunityPlansResponseFreePlanFeaturesMax = 20;
+
+export const getCommunityPlansResponsePremiumPlanTitleMax = 120;
+
+export const getCommunityPlansResponsePremiumPlanDescriptionMax = 500;
+
+export const getCommunityPlansResponsePremiumPlanPriceUsdMin = 0;
+export const getCommunityPlansResponsePremiumPlanPriceUsdMax = 1000000;
+
+export const getCommunityPlansResponsePremiumPlanPricePkrMin = 0;
+export const getCommunityPlansResponsePremiumPlanPricePkrMax = 100000000;
+
+export const getCommunityPlansResponsePremiumPlanBillingPeriodMax = 40;
+
+export const getCommunityPlansResponsePremiumPlanButtonLabelMax = 100;
+
+export const getCommunityPlansResponsePremiumPlanFeaturesItemMax = 240;
+
+export const getCommunityPlansResponsePremiumPlanFeaturesMax = 20;
+
+export const getCommunityPlansResponseWhatsappGroupUrlMax = 500;
+
+export const getCommunityPlansResponseWhatsappChannelUrlMax = 500;
+
+
+
+export const GetCommunityPlansResponse = zod.object({
+  "freePlan": zod.object({
+  "isActive": zod.boolean(),
+  "title": zod.string().min(1).max(getCommunityPlansResponseFreePlanTitleMax),
+  "description": zod.string().min(1).max(getCommunityPlansResponseFreePlanDescriptionMax),
+  "priceUsd": zod.number().min(getCommunityPlansResponseFreePlanPriceUsdMin).max(getCommunityPlansResponseFreePlanPriceUsdMax),
+  "pricePkr": zod.number().min(getCommunityPlansResponseFreePlanPricePkrMin).max(getCommunityPlansResponseFreePlanPricePkrMax),
+  "billingPeriod": zod.string().min(1).max(getCommunityPlansResponseFreePlanBillingPeriodMax),
+  "buttonLabel": zod.string().min(1).max(getCommunityPlansResponseFreePlanButtonLabelMax),
+  "features": zod.array(zod.string().min(1).max(getCommunityPlansResponseFreePlanFeaturesItemMax)).max(getCommunityPlansResponseFreePlanFeaturesMax)
+}),
+  "premiumPlan": zod.object({
+  "isActive": zod.boolean(),
+  "title": zod.string().min(1).max(getCommunityPlansResponsePremiumPlanTitleMax),
+  "description": zod.string().min(1).max(getCommunityPlansResponsePremiumPlanDescriptionMax),
+  "priceUsd": zod.number().min(getCommunityPlansResponsePremiumPlanPriceUsdMin).max(getCommunityPlansResponsePremiumPlanPriceUsdMax),
+  "pricePkr": zod.number().min(getCommunityPlansResponsePremiumPlanPricePkrMin).max(getCommunityPlansResponsePremiumPlanPricePkrMax),
+  "billingPeriod": zod.string().min(1).max(getCommunityPlansResponsePremiumPlanBillingPeriodMax),
+  "buttonLabel": zod.string().min(1).max(getCommunityPlansResponsePremiumPlanButtonLabelMax),
+  "features": zod.array(zod.string().min(1).max(getCommunityPlansResponsePremiumPlanFeaturesItemMax)).max(getCommunityPlansResponsePremiumPlanFeaturesMax)
+}),
+  "whatsappGroupUrl": zod.string().max(getCommunityPlansResponseWhatsappGroupUrlMax),
+  "whatsappChannelUrl": zod.string().max(getCommunityPlansResponseWhatsappChannelUrlMax)
+})
+
+
+/**
+ * Requires an authenticated admin session.
+ * @summary Get community plans for administration
+ */
+export const getAdminCommunityPlansResponseFreePlanTitleMax = 120;
+
+export const getAdminCommunityPlansResponseFreePlanDescriptionMax = 500;
+
+export const getAdminCommunityPlansResponseFreePlanPriceUsdMin = 0;
+export const getAdminCommunityPlansResponseFreePlanPriceUsdMax = 1000000;
+
+export const getAdminCommunityPlansResponseFreePlanPricePkrMin = 0;
+export const getAdminCommunityPlansResponseFreePlanPricePkrMax = 100000000;
+
+export const getAdminCommunityPlansResponseFreePlanBillingPeriodMax = 40;
+
+export const getAdminCommunityPlansResponseFreePlanButtonLabelMax = 100;
+
+export const getAdminCommunityPlansResponseFreePlanFeaturesItemMax = 240;
+
+export const getAdminCommunityPlansResponseFreePlanFeaturesMax = 20;
+
+export const getAdminCommunityPlansResponsePremiumPlanTitleMax = 120;
+
+export const getAdminCommunityPlansResponsePremiumPlanDescriptionMax = 500;
+
+export const getAdminCommunityPlansResponsePremiumPlanPriceUsdMin = 0;
+export const getAdminCommunityPlansResponsePremiumPlanPriceUsdMax = 1000000;
+
+export const getAdminCommunityPlansResponsePremiumPlanPricePkrMin = 0;
+export const getAdminCommunityPlansResponsePremiumPlanPricePkrMax = 100000000;
+
+export const getAdminCommunityPlansResponsePremiumPlanBillingPeriodMax = 40;
+
+export const getAdminCommunityPlansResponsePremiumPlanButtonLabelMax = 100;
+
+export const getAdminCommunityPlansResponsePremiumPlanFeaturesItemMax = 240;
+
+export const getAdminCommunityPlansResponsePremiumPlanFeaturesMax = 20;
+
+export const getAdminCommunityPlansResponseWhatsappGroupUrlMax = 500;
+
+export const getAdminCommunityPlansResponseWhatsappChannelUrlMax = 500;
+
+
+
+export const GetAdminCommunityPlansResponse = zod.object({
+  "freePlan": zod.object({
+  "isActive": zod.boolean(),
+  "title": zod.string().min(1).max(getAdminCommunityPlansResponseFreePlanTitleMax),
+  "description": zod.string().min(1).max(getAdminCommunityPlansResponseFreePlanDescriptionMax),
+  "priceUsd": zod.number().min(getAdminCommunityPlansResponseFreePlanPriceUsdMin).max(getAdminCommunityPlansResponseFreePlanPriceUsdMax),
+  "pricePkr": zod.number().min(getAdminCommunityPlansResponseFreePlanPricePkrMin).max(getAdminCommunityPlansResponseFreePlanPricePkrMax),
+  "billingPeriod": zod.string().min(1).max(getAdminCommunityPlansResponseFreePlanBillingPeriodMax),
+  "buttonLabel": zod.string().min(1).max(getAdminCommunityPlansResponseFreePlanButtonLabelMax),
+  "features": zod.array(zod.string().min(1).max(getAdminCommunityPlansResponseFreePlanFeaturesItemMax)).max(getAdminCommunityPlansResponseFreePlanFeaturesMax)
+}),
+  "premiumPlan": zod.object({
+  "isActive": zod.boolean(),
+  "title": zod.string().min(1).max(getAdminCommunityPlansResponsePremiumPlanTitleMax),
+  "description": zod.string().min(1).max(getAdminCommunityPlansResponsePremiumPlanDescriptionMax),
+  "priceUsd": zod.number().min(getAdminCommunityPlansResponsePremiumPlanPriceUsdMin).max(getAdminCommunityPlansResponsePremiumPlanPriceUsdMax),
+  "pricePkr": zod.number().min(getAdminCommunityPlansResponsePremiumPlanPricePkrMin).max(getAdminCommunityPlansResponsePremiumPlanPricePkrMax),
+  "billingPeriod": zod.string().min(1).max(getAdminCommunityPlansResponsePremiumPlanBillingPeriodMax),
+  "buttonLabel": zod.string().min(1).max(getAdminCommunityPlansResponsePremiumPlanButtonLabelMax),
+  "features": zod.array(zod.string().min(1).max(getAdminCommunityPlansResponsePremiumPlanFeaturesItemMax)).max(getAdminCommunityPlansResponsePremiumPlanFeaturesMax)
+}),
+  "whatsappGroupUrl": zod.string().max(getAdminCommunityPlansResponseWhatsappGroupUrlMax),
+  "whatsappChannelUrl": zod.string().max(getAdminCommunityPlansResponseWhatsappChannelUrlMax)
+})
+
+
+/**
+ * Requires an authenticated admin session.
+ * @summary Update community plans
+ */
+export const updateCommunityPlansBodyFreePlanTitleMax = 120;
+
+export const updateCommunityPlansBodyFreePlanDescriptionMax = 500;
+
+export const updateCommunityPlansBodyFreePlanPriceUsdMin = 0;
+export const updateCommunityPlansBodyFreePlanPriceUsdMax = 1000000;
+
+export const updateCommunityPlansBodyFreePlanPricePkrMin = 0;
+export const updateCommunityPlansBodyFreePlanPricePkrMax = 100000000;
+
+export const updateCommunityPlansBodyFreePlanBillingPeriodMax = 40;
+
+export const updateCommunityPlansBodyFreePlanButtonLabelMax = 100;
+
+export const updateCommunityPlansBodyFreePlanFeaturesItemMax = 240;
+
+export const updateCommunityPlansBodyFreePlanFeaturesMax = 20;
+
+export const updateCommunityPlansBodyPremiumPlanTitleMax = 120;
+
+export const updateCommunityPlansBodyPremiumPlanDescriptionMax = 500;
+
+export const updateCommunityPlansBodyPremiumPlanPriceUsdMin = 0;
+export const updateCommunityPlansBodyPremiumPlanPriceUsdMax = 1000000;
+
+export const updateCommunityPlansBodyPremiumPlanPricePkrMin = 0;
+export const updateCommunityPlansBodyPremiumPlanPricePkrMax = 100000000;
+
+export const updateCommunityPlansBodyPremiumPlanBillingPeriodMax = 40;
+
+export const updateCommunityPlansBodyPremiumPlanButtonLabelMax = 100;
+
+export const updateCommunityPlansBodyPremiumPlanFeaturesItemMax = 240;
+
+export const updateCommunityPlansBodyPremiumPlanFeaturesMax = 20;
+
+export const updateCommunityPlansBodyWhatsappGroupUrlMax = 500;
+
+export const updateCommunityPlansBodyWhatsappChannelUrlMax = 500;
+
+
+
+export const UpdateCommunityPlansBody = zod.object({
+  "freePlan": zod.object({
+  "isActive": zod.boolean(),
+  "title": zod.string().min(1).max(updateCommunityPlansBodyFreePlanTitleMax),
+  "description": zod.string().min(1).max(updateCommunityPlansBodyFreePlanDescriptionMax),
+  "priceUsd": zod.number().min(updateCommunityPlansBodyFreePlanPriceUsdMin).max(updateCommunityPlansBodyFreePlanPriceUsdMax),
+  "pricePkr": zod.number().min(updateCommunityPlansBodyFreePlanPricePkrMin).max(updateCommunityPlansBodyFreePlanPricePkrMax),
+  "billingPeriod": zod.string().min(1).max(updateCommunityPlansBodyFreePlanBillingPeriodMax),
+  "buttonLabel": zod.string().min(1).max(updateCommunityPlansBodyFreePlanButtonLabelMax),
+  "features": zod.array(zod.string().min(1).max(updateCommunityPlansBodyFreePlanFeaturesItemMax)).max(updateCommunityPlansBodyFreePlanFeaturesMax)
+}),
+  "premiumPlan": zod.object({
+  "isActive": zod.boolean(),
+  "title": zod.string().min(1).max(updateCommunityPlansBodyPremiumPlanTitleMax),
+  "description": zod.string().min(1).max(updateCommunityPlansBodyPremiumPlanDescriptionMax),
+  "priceUsd": zod.number().min(updateCommunityPlansBodyPremiumPlanPriceUsdMin).max(updateCommunityPlansBodyPremiumPlanPriceUsdMax),
+  "pricePkr": zod.number().min(updateCommunityPlansBodyPremiumPlanPricePkrMin).max(updateCommunityPlansBodyPremiumPlanPricePkrMax),
+  "billingPeriod": zod.string().min(1).max(updateCommunityPlansBodyPremiumPlanBillingPeriodMax),
+  "buttonLabel": zod.string().min(1).max(updateCommunityPlansBodyPremiumPlanButtonLabelMax),
+  "features": zod.array(zod.string().min(1).max(updateCommunityPlansBodyPremiumPlanFeaturesItemMax)).max(updateCommunityPlansBodyPremiumPlanFeaturesMax)
+}),
+  "whatsappGroupUrl": zod.string().max(updateCommunityPlansBodyWhatsappGroupUrlMax),
+  "whatsappChannelUrl": zod.string().max(updateCommunityPlansBodyWhatsappChannelUrlMax)
+})
+
+export const updateCommunityPlansResponseFreePlanTitleMax = 120;
+
+export const updateCommunityPlansResponseFreePlanDescriptionMax = 500;
+
+export const updateCommunityPlansResponseFreePlanPriceUsdMin = 0;
+export const updateCommunityPlansResponseFreePlanPriceUsdMax = 1000000;
+
+export const updateCommunityPlansResponseFreePlanPricePkrMin = 0;
+export const updateCommunityPlansResponseFreePlanPricePkrMax = 100000000;
+
+export const updateCommunityPlansResponseFreePlanBillingPeriodMax = 40;
+
+export const updateCommunityPlansResponseFreePlanButtonLabelMax = 100;
+
+export const updateCommunityPlansResponseFreePlanFeaturesItemMax = 240;
+
+export const updateCommunityPlansResponseFreePlanFeaturesMax = 20;
+
+export const updateCommunityPlansResponsePremiumPlanTitleMax = 120;
+
+export const updateCommunityPlansResponsePremiumPlanDescriptionMax = 500;
+
+export const updateCommunityPlansResponsePremiumPlanPriceUsdMin = 0;
+export const updateCommunityPlansResponsePremiumPlanPriceUsdMax = 1000000;
+
+export const updateCommunityPlansResponsePremiumPlanPricePkrMin = 0;
+export const updateCommunityPlansResponsePremiumPlanPricePkrMax = 100000000;
+
+export const updateCommunityPlansResponsePremiumPlanBillingPeriodMax = 40;
+
+export const updateCommunityPlansResponsePremiumPlanButtonLabelMax = 100;
+
+export const updateCommunityPlansResponsePremiumPlanFeaturesItemMax = 240;
+
+export const updateCommunityPlansResponsePremiumPlanFeaturesMax = 20;
+
+export const updateCommunityPlansResponseWhatsappGroupUrlMax = 500;
+
+export const updateCommunityPlansResponseWhatsappChannelUrlMax = 500;
+
+
+
+export const UpdateCommunityPlansResponse = zod.object({
+  "freePlan": zod.object({
+  "isActive": zod.boolean(),
+  "title": zod.string().min(1).max(updateCommunityPlansResponseFreePlanTitleMax),
+  "description": zod.string().min(1).max(updateCommunityPlansResponseFreePlanDescriptionMax),
+  "priceUsd": zod.number().min(updateCommunityPlansResponseFreePlanPriceUsdMin).max(updateCommunityPlansResponseFreePlanPriceUsdMax),
+  "pricePkr": zod.number().min(updateCommunityPlansResponseFreePlanPricePkrMin).max(updateCommunityPlansResponseFreePlanPricePkrMax),
+  "billingPeriod": zod.string().min(1).max(updateCommunityPlansResponseFreePlanBillingPeriodMax),
+  "buttonLabel": zod.string().min(1).max(updateCommunityPlansResponseFreePlanButtonLabelMax),
+  "features": zod.array(zod.string().min(1).max(updateCommunityPlansResponseFreePlanFeaturesItemMax)).max(updateCommunityPlansResponseFreePlanFeaturesMax)
+}),
+  "premiumPlan": zod.object({
+  "isActive": zod.boolean(),
+  "title": zod.string().min(1).max(updateCommunityPlansResponsePremiumPlanTitleMax),
+  "description": zod.string().min(1).max(updateCommunityPlansResponsePremiumPlanDescriptionMax),
+  "priceUsd": zod.number().min(updateCommunityPlansResponsePremiumPlanPriceUsdMin).max(updateCommunityPlansResponsePremiumPlanPriceUsdMax),
+  "pricePkr": zod.number().min(updateCommunityPlansResponsePremiumPlanPricePkrMin).max(updateCommunityPlansResponsePremiumPlanPricePkrMax),
+  "billingPeriod": zod.string().min(1).max(updateCommunityPlansResponsePremiumPlanBillingPeriodMax),
+  "buttonLabel": zod.string().min(1).max(updateCommunityPlansResponsePremiumPlanButtonLabelMax),
+  "features": zod.array(zod.string().min(1).max(updateCommunityPlansResponsePremiumPlanFeaturesItemMax)).max(updateCommunityPlansResponsePremiumPlanFeaturesMax)
+}),
+  "whatsappGroupUrl": zod.string().max(updateCommunityPlansResponseWhatsappGroupUrlMax),
+  "whatsappChannelUrl": zod.string().max(updateCommunityPlansResponseWhatsappChannelUrlMax)
+})
+
+
+/**
  * Requires an authenticated admin session.
  * @summary Get FAQs for administration
  */

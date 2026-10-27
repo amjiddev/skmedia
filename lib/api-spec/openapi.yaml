@@ -206,6 +206,55 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FAQPageContent"
+  /community-plans:
+    get:
+      operationId: getCommunityPlans
+      tags: [community]
+      summary: Get public community membership plans
+      responses:
+        "200":
+          description: Free and premium community plans
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPlansContent"
+  /admin/community-plans:
+    get:
+      operationId: getAdminCommunityPlans
+      tags: [admin]
+      summary: Get community plans for administration
+      description: Requires an authenticated admin session.
+      responses:
+        "200":
+          description: Current free and premium plan content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPlansContent"
+        "401":
+          description: Admin authentication required
+    put:
+      operationId: updateCommunityPlans
+      tags: [admin]
+      summary: Update community plans
+      description: Requires an authenticated admin session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityPlansContent"
+      responses:
+        "200":
+          description: Updated community plans
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityPlansContent"
+        "400":
+          description: Invalid community plan content
+        "401":
+          description: Admin authentication required
   /admin/faqs:
     get:
       operationId: getAdminFaqs
@@ -1596,6 +1645,59 @@ components:
           items:
             $ref: "#/components/schemas/FAQEntry"
       required: [title, description, faqs]
+    CommunityPlan:
+      type: object
+      additionalProperties: false
+      properties:
+        isActive:
+          type: boolean
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        priceUsd:
+          type: number
+          minimum: 0
+          maximum: 1000000
+        pricePkr:
+          type: number
+          minimum: 0
+          maximum: 100000000
+        billingPeriod:
+          type: string
+          minLength: 1
+          maxLength: 40
+        buttonLabel:
+          type: string
+          minLength: 1
+          maxLength: 100
+        features:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            minLength: 1
+            maxLength: 240
+      required: [isActive, title, description, priceUsd, pricePkr, billingPeriod, buttonLabel, features]
+    CommunityPlansContent:
+      type: object
+      additionalProperties: false
+      properties:
+        freePlan:
+          $ref: "#/components/schemas/CommunityPlan"
+        premiumPlan:
+          $ref: "#/components/schemas/CommunityPlan"
+        whatsappGroupUrl:
+          type: string
+          maxLength: 500
+        whatsappChannelUrl:
+          type: string
+          maxLength: 500
+      required: [freePlan, premiumPlan, whatsappGroupUrl, whatsappChannelUrl]
     SharedIdea:
       allOf:
         - $ref: "#/components/schemas/SharedIdeaInput"
@@ -1745,4 +1847,3 @@ components:
         success:
           type: boolean
       required: [success]
-

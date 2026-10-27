@@ -19,7 +19,7 @@ async function compressLogo(file: File): Promise<string> {
     if (!context) throw new Error('Could not process this logo. Try another image.');
 
     let blob: Blob | null = null;
-    for (const maxDimension of [900, 720, 560, 420, 300, 200]) {
+    for (const maxDimension of [112, 96, 80, 64, 48]) {
       const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
       canvas.width = Math.max(1, Math.round(bitmap.width * scale));
       canvas.height = Math.max(1, Math.round(bitmap.height * scale));
@@ -72,7 +72,7 @@ export function ServiceLogoInput({ value, onChange }: { value: string; onChange:
     <span className="text-xs font-semibold text-[#5f5d55]">Logo image</span>
     <div className="flex flex-wrap items-center gap-3">
       <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-lg border border-black/10 bg-white">
-        {value ? <img src={value} alt="Service logo preview" className="h-full w-full object-contain p-1" /> : <ImagePlus size={20} className="text-black/35" />}
+        {value ? <img src={value} alt="Service logo preview" className="h-full w-full object-contain p-1" loading="lazy" decoding="async" width={112} height={112} /> : <ImagePlus size={20} className="text-black/35" />}
       </div>
       <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handleChange} className="sr-only" aria-label="Upload service logo image" />
       <button type="button" onClick={() => inputRef.current?.click()} disabled={processing} className="rounded-full border border-black/15 px-4 py-2 text-xs font-semibold transition hover:bg-black/5 disabled:opacity-50">

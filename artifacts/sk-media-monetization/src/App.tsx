@@ -1,11 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Route, Switch, useLocation, useRoute, Router as WouterRouter } from 'wouter';
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, BarChart3, Check, ChevronDown, CircleHelp, Clapperboard, Copy, Eye, EyeOff, Gift, LockKeyhole, Mail, MapPin, Menu, MessageCircle, Pencil, Phone, Play, Search, ShieldCheck, Sparkles, Star, Target, TrendingUp, Trash2, Users, Video, X, Youtube } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Check, ChevronDown, CircleHelp, Clapperboard, Copy, Eye, EyeOff, Gift, LockKeyhole, Mail, MapPin, Menu, MessageCircle, Pencil, Phone, Play, Search, ShieldCheck, Sparkles, Star, Target, TrendingUp, Trash2, Users, Video, X, Youtube } from 'lucide-react';
 import { SiFacebook, SiTiktok, SiWhatsapp, SiYoutube } from 'react-icons/si';
-import { AnimatePresence, motion } from 'framer-motion';
-import { QRCodeSVG } from 'qrcode.react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as ChartTooltip, XAxis } from 'recharts';
 import {
   getGetAdminSessionQueryKey,
   getGetContactSummaryQueryKey,
@@ -39,6 +36,7 @@ import {
   getGetAdminFaqsQueryKey,
   getGetAdminHomeContentQueryKey,
   getGetAdminContactContentQueryKey,
+  getGetAdminCommunityPlansQueryKey,
   getGetPromptBySlugQueryKey,
   getGetPromptsQueryKey,
   useCreatePrompt,
@@ -50,26 +48,32 @@ import {
   useGetFaqs,
   useGetHomeContent,
   useGetContactContent,
+  useGetCommunityPlans,
   useGetPromptBySlug,
   useGetPrompts,
   useUpdatePrompt,
 } from '@workspace/api-client-react';
 import type { AboutContent, Contact, ContactInput, FAQEntry, HomePageContent, MemberSession, ServiceCardContent, ServicesPageContent, SharedIdea } from '@workspace/api-client-react';
-import NotFound from '@/pages/not-found';
-import AdminPromptsPanel from '@/components/admin-prompts-panel';
-import AdminTeamPanel from '@/components/admin-team-panel';
-import AdminAboutPanel from '@/components/admin-about-panel';
-import AdminServicesPanel from './components/admin-services-panel';
-import AdminFaqsPanel from '@/components/admin-faqs-panel';
-import AdminHomePanel from '@/components/admin-home-panel';
-import AdminFooterPanel from '@/components/admin-footer-panel';
-import AdminContactPanel from '@/components/admin-contact-panel';
 import { ErrorBoundary } from '@/components/error-boundary';
+import EarningsCard from '@/components/earnings-card';
+const NotFound = lazy(() => import('@/pages/not-found'));
+const HomeBelowFold = lazy(() => import('@/components/home-below-fold'));
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { sharedIdeas } from '@/lib/shared-ideas';
+
+const QRCodeSVG = lazy(() => import('qrcode.react').then(({ QRCodeSVG }) => ({ default: QRCodeSVG })));
+const AdminPromptsPanel = lazy(() => import('@/components/admin-prompts-panel'));
+const AdminTeamPanel = lazy(() => import('@/components/admin-team-panel'));
+const AdminAboutPanel = lazy(() => import('@/components/admin-about-panel'));
+const AdminServicesPanel = lazy(() => import('@/components/admin-services-panel'));
+const AdminFaqsPanel = lazy(() => import('@/components/admin-faqs-panel'));
+const AdminHomePanel = lazy(() => import('@/components/admin-home-panel'));
+const AdminFooterPanel = lazy(() => import('@/components/admin-footer-panel'));
+const AdminContactPanel = lazy(() => import('@/components/admin-contact-panel'));
+const AdminCommunityPanel = lazy(() => import('@/components/admin-community-panel'));
 
 const queryClient = new QueryClient();
 const primaryPhone = '+92 311 0380241';
@@ -224,10 +228,6 @@ function Logo({ light = false, compact = false }: { light?: boolean; compact?: b
   </Link>;
 }
 
-function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <motion.div className={className} initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.18 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>{children}</motion.div>;
-}
-
 function TestimonialSlider({ title, description, testimonials }: { title: string; description: string; testimonials: typeof defaultTestimonials }) {
   const visibleCards = 5;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -325,7 +325,7 @@ function Header() {
   const [authDialogMode, setAuthDialogMode] = useState<'login' | 'register' | null>(null);
   const [path, navigate] = useLocation();
   const queryClient = useQueryClient();
-  const memberSession = useGetMemberSession({ query: { queryKey: getGetMemberSessionQueryKey(), retry: false } });
+  const memberSession = useGetMemberSession({ query: { queryKey: getGetMemberSessionQueryKey(), retry: false, enabled: accountMenuOpen || mobileAccountOpen } });
   const memberLogout = useMemberLogout();
   const links = [['Services', '/services']];
   const activePromptPath = path === '/sk-prompt-party';
@@ -465,11 +465,11 @@ function ContactForm({ compact = false }: { compact?: boolean }) {
       onError: () => setError('We couldn’t send that just now. Please try again, or message us on WhatsApp.'),
     });
   };
-  if (sent) return <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-emerald-400/30 bg-[#101713] p-6 text-white" data-testid="status-contact-success">
-    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 16 }} className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-emerald-400 text-[#08120b]"><Check size={20} /></motion.div>
+  if (sent) return <div className="rounded-2xl border border-emerald-400/30 bg-[#101713] p-6 text-white" data-testid="status-contact-success">
+    <div className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-emerald-400 text-[#08120b]"><Check size={20} /></div>
     <h3 className="font-display text-xl font-extrabold">You’re on our radar.</h3><p className="mt-2 text-sm leading-6 text-white/65">Thanks for reaching out. Our team will review your note and follow up. Reference <span className="font-mono">{sent.id.slice(0, 8)}</span>.</p>
     {sent.notification !== 'sent' && <p className="mt-3 rounded-lg bg-white/70 p-3 text-xs text-[#6c5810]" data-testid="status-email-notification">{sent.notification === 'not_configured' ? 'Your request was received. Email notifications are currently unavailable, but we have your details.' : 'Your request was received. We could not send an email notification, but our team has your details.'}</p>}
-  </motion.div>;
+  </div>;
   return <form className="grid gap-4" onSubmit={submit} data-testid="form-contact">
     <div className={compact ? 'grid gap-4 sm:grid-cols-2' : 'grid gap-4'}>
       <label className="grid gap-2 text-xs font-semibold">Your name<input className="form-field text-sm" name="name" minLength={2} maxLength={100} required placeholder="Name ..." data-testid="input-contact-name" /></label>
@@ -488,80 +488,23 @@ function PlatformMark({ platform }: { platform: string }) {
   return <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-black text-[#ffd700]">{platform === 'YouTube' ? <Youtube size={20} /> : platform === 'Facebook' ? <span className="font-display text-xl font-extrabold">f</span> : <Video size={19} />}</span>;
 }
 
-function EarningsCard({ hero }: { hero: HomePageContent['hero'] }) {
-  const earnings = hero.chartMonths.map(({ month, earnings: value, bonus }) => ({ month, value, bonus }));
-  return <div className="earnings-card relative mx-auto w-full max-w-[470px] rotate-[1deg] rounded-[24px] border border-white/15 bg-black p-5 text-white shadow-[0_32px_90px_rgba(0,0,0,.45)] md:p-7">
-    <div className="flex items-start justify-between"><div><div className="text-[11px] font-medium text-white/45">{hero.chartTitle}</div><div className="mt-2 font-display text-[32px] font-extrabold tracking-[-.06em] md:text-[40px]">{hero.chartTotal}</div><div className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#ffd700]/15 px-2.5 py-1 text-[10px] font-bold text-[#ffd700]"><TrendingUp size={12} /> {hero.chartGrowth} <span className="font-normal text-white/55">{hero.chartGrowthCaption}</span></div></div><span className="rounded-lg bg-white/5 p-2 text-[#ffd700]"><BarChart3 size={18} /></span></div>
-    <div className="mt-6 h-[155px] w-full" role="img" aria-label="Sample monthly creator earnings chart">
-      <ResponsiveContainer width="100%" height="100%"><BarChart data={earnings} margin={{ top: 4, right: 0, left: -28, bottom: 0 }}>
-        <defs><linearGradient id="earningsGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#ffd700" /><stop offset="100%" stopColor="#b8860b" /></linearGradient></defs>
-        <CartesianGrid vertical={false} stroke="rgba(255,255,255,.08)" />
-        <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,.38)', fontSize: 9 }} />
-        <ChartTooltip cursor={{ fill: 'rgba(255,215,0,.08)' }} contentStyle={{ background: '#101010', border: '1px solid rgba(255,215,0,.3)', borderRadius: 10, color: '#fff', fontSize: 11 }} formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Earnings']} />
-        <Bar dataKey="value" name="Ad revenue" fill="url(#earningsGold)" radius={[4, 4, 0, 0]} maxBarSize={20} />
-        <Bar dataKey="bonus" name="Creator bonuses" fill="#60a5fa" radius={[4, 4, 0, 0]} maxBarSize={20} />
-      </BarChart></ResponsiveContainer>
-    </div>
-    <div className="mt-6 grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-4">
-      {hero.chartPlatforms.map(({ name, amount }) => <div className="px-2 first:pl-0" key={name}><div className="text-[9px] text-white/40">{name}</div><div className="mt-1 text-xs font-bold md:text-sm">{amount}</div></div>)}
-    </div>
-  </div>;
-}
-
 function LaptopMockup({ hero }: { hero: HomePageContent['hero'] }) {
   return <div className="laptop-visual relative mx-auto w-full max-w-[560px] px-3 pb-4 md:px-7">
     <div className="laptop-frame">
       <EarningsCard hero={hero} />
     </div>
     <div className="laptop-base" aria-hidden="true"><span /></div>
-    <motion.div className="social-float social-float-facebook" aria-hidden="true" animate={{ y: [0, -9, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}><SiFacebook size={20} /></motion.div>
-    <motion.div className="social-float social-float-tiktok" aria-hidden="true" animate={{ y: [0, 8, 0] }} transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}><SiTiktok size={19} /></motion.div>
-    <motion.div className="social-float social-float-youtube" aria-hidden="true" animate={{ y: [0, -7, 0] }} transition={{ duration: 5.2, repeat: Infinity, ease: 'easeInOut' }}><SiYoutube size={22} /></motion.div>
+    <div className="social-float social-float-facebook" aria-hidden="true"><SiFacebook size={20} /></div>
+    <div className="social-float social-float-tiktok" aria-hidden="true"><SiTiktok size={19} /></div>
+    <div className="social-float social-float-youtube" aria-hidden="true"><SiYoutube size={22} /></div>
   </div>;
 }
 
-const homeFeatureIcons = { users: Users, shield: ShieldCheck, target: Target, trend: TrendingUp, youtube: Youtube, facebook: Users, tiktok: Video, pin: MapPin, video: Video, sparkles: Sparkles, clapperboard: Clapperboard };
 const homeAssurances = [
   { icon: ShieldCheck, text: 'Platform policy-aware' },
   { icon: Users, text: 'Creator-first guidance' },
   { icon: MapPin, text: 'Proudly based in Pakistan' },
 ];
-
-function TrustFeatures({ title, cards }: { title: string; cards: HomePageContent['trust']['cards'] }) {
-  return <section className="section-pad bg-[#080808] text-white">
-    <div className="mx-auto max-w-[1180px]">
-      <div className="mb-8 text-center"><h2 className="mt-3 font-sans text-3xl font-bold tracking-[-.05em] md:text-5xl">{title}</h2></div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map(({ title: cardTitle, description, icon }, index) => { const Icon = homeFeatureIcons[icon]; return <motion.article key={`${cardTitle}-${index}`} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: .45, delay: index * .08 }} whileHover={{ y: -6 }} className="trust-card rounded-xl border border-white/10 bg-white/[.03] p-5" data-testid={`card-trust-${cardTitle.toLowerCase().replaceAll(' ', '-')}`}>
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-[#ffd700] text-black"><Icon size={19} /></span>
-          <h3 className="mt-5 font-display text-[16px] font-bold">{cardTitle}</h3>
-          <p className="mt-2 text-xs leading-5 text-white/55">{description}</p>
-        </motion.article>; })}
-      </div>
-    </div>
-  </section>;
-}
-
-function ServiceGrid({ services, detailed = false }: { services: ServiceCardContent[]; detailed?: boolean }) {
-  return <div className="grid gap-4 md:grid-cols-2">
-    {services.map((service, index) => { const Icon = homeFeatureIcons[service.icon]; return <motion.article id={`service-${service.number}`} key={`${service.number}-${index}`} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: .45, delay: index * .07 }} whileHover={{ y: -5 }} className="service-card rounded-xl border border-white/10 border-t-[3px] border-t-[#d4af37] bg-[#111] p-6 md:p-8">
-      <div className="flex items-center justify-between gap-4"><h3 className={`min-w-0 flex-1 ${detailed ? 'font-sans font-bold' : 'font-display font-extrabold'} text-[25px] tracking-[-.05em]`}>{service.title}</h3><span className={`service-icon grid shrink-0 ${service.logo ? 'h-14 w-14' : 'h-10 w-10'} place-items-center overflow-hidden rounded-full bg-[#ffd700] text-black`}>{service.logo ? <img src={service.logo} alt={`${service.title} logo`} className="h-full w-full object-contain p-1" /> : <Icon size={18} />}</span></div>
-      <p className="mt-3 max-w-md text-sm leading-6 text-black/60">{service.description}</p>
-      {detailed && <ul className="mt-5 grid gap-2">{service.features.map((item, featureIndex) => <li key={`${item}-${featureIndex}`} className="flex items-center gap-2 text-xs text-black/70"><Check size={14} className="text-[#9b7b00]" />{item}</li>)}</ul>}
-      <Link href="/contact" className="line-link mt-6 inline-flex items-center gap-2 text-xs font-bold" data-testid={`link-service-${service.number}`}>{service.ctaLabel} <ArrowUpRight size={14} /></Link>
-    </motion.article>; })}
-  </div>;
-}
-
-const defaultFaqs: FAQEntry[] = [
-  { id: 'faq-following', question: 'Do I need a large following to work with you?', answer: 'Not at all. We meet you where you are. We’ll look at your content, goals, and platform eligibility, then map the most sensible next step.', isPublished: true },
-  { id: 'faq-platforms', question: 'Which platforms do you support?', answer: 'We work across YouTube, Facebook, and TikTok, with content strategy that can support your wider creator presence too.', isPublished: true },
-  { id: 'faq-guarantee', question: 'Can you guarantee monetization or earnings?', answer: 'No one can responsibly guarantee platform approval or a specific income. We offer experienced guidance, clear next steps, and hands-on support—without promises that depend on platform decisions.', isPublished: true },
-  { id: 'faq-conversation', question: 'How does the first conversation work?', answer: 'Send a short note through the form or WhatsApp. We’ll learn about your channel, answer your questions, and recommend a path that makes sense for you.', isPublished: true },
-];
-function FAQ({ faqs }: { faqs: FAQEntry[] }) {
-  return <div className="divide-y divide-black/15 border-y border-black/15">{faqs.map((faq, index) => <details className="faq-item py-5" key={faq.id} open={index === 0}><summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-display text-[16px] font-bold tracking-[-.03em] md:text-lg">{faq.question}<span className="faq-mark grid h-8 w-8 shrink-0 place-items-center rounded-full border border-black/20"><span className="text-lg leading-none">+</span></span></summary><p className="max-w-2xl whitespace-pre-line pt-4 pr-12 text-sm leading-6 text-black/60">{faq.answer}</p></details>)}</div>;
-}
 
 function Landing() {
   const homeContentQuery = useGetHomeContent();
@@ -573,51 +516,26 @@ function Landing() {
     'SK Media Monetization helps creators in Pakistan and beyond earn from YouTube, Facebook, and TikTok with expert guidance and content strategy at every stage.',
   );
   if (!home) return <div className="grid min-h-[100dvh] place-items-center bg-[#f8f7f1] text-sm text-black/55">{homeContentQuery.isError ? <div className="text-center"><p>We couldn’t load the homepage.</p><button type="button" onClick={() => homeContentQuery.refetch()} className="mt-3 font-bold underline">Try again</button></div> : 'Loading homepage…'}</div>;
-  return <div className="site-shell grain">
+  return <div className="site-shell">
     <Header />
     <main>
       <section className="relative overflow-hidden bg-[#090909] text-white">
-        <div className="hero-grid absolute inset-0 opacity-40" /><div className="absolute -right-40 top-0 h-[500px] w-[500px] rounded-full bg-[#ffd700]/[.08] blur-[100px]" />
+        <div className="hero-grid absolute inset-0 opacity-40" /><div className="pointer-events-none absolute -right-40 top-0 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,rgba(255,215,0,.08),transparent_70%)]" />
         <div className="relative mx-auto grid max-w-[1280px] items-center gap-14 px-6 pb-20 pt-16 md:grid-cols-[1.04fr_.96fr] md:px-10 md:pb-28 md:pt-24">
-          <div className="reveal">
+          <div>
             <h1 className="mt-4 font-display text-[clamp(44px,7vw,82px)] font-extrabold uppercase leading-[.91] tracking-[-.075em]"><span className="text-[1.08em] text-[#ffd700]">{home.hero.brandTitle}</span><br /><span className="text-white">{home.hero.brandSubtitle}</span></h1>
             <p className="mt-6 inline-flex max-w-[490px] rounded-full border border-[#ffd700]/45 bg-[#ffd700]/[.055] px-4 py-2.5 font-display text-sm font-bold leading-6 text-white md:text-base">{home.hero.badge}</p>
             <p className="mt-3 max-w-[490px] text-[15px] leading-7 text-white/60 md:text-[17px]">{home.hero.intro}</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row"><motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: .98 }} href="#contact" className="btn-gold" data-testid="link-hero-start">{home.hero.primaryCta} <ArrowRight size={16} /></motion.a><a href="#services" className="btn-outline border-white/30 text-white" data-testid="link-hero-services">{home.hero.secondaryCta} <ArrowDown size={15} /></a></div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row"><a href="#contact" className="btn-gold" data-testid="link-hero-start">{home.hero.primaryCta} <ArrowRight size={16} /></a><a href="#services" className="btn-outline border-white/30 text-white" data-testid="link-hero-services">{home.hero.secondaryCta} <ArrowDown size={15} /></a></div>
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-white/15 pt-6 text-[11px] text-white/45">{homeAssurances.map(({ icon: Icon, text }) => <span className="inline-flex items-center gap-2" key={text}><Icon size={15} className="text-[#ffd700]" /> {text}</span>)}</div>
           </div>
-          <div className="reveal reveal-delay-1"><LaptopMockup hero={home.hero} /><p className="mt-5 text-center text-[10px] text-white/35">{home.hero.chartDisclaimer}</p></div>
+          <div><LaptopMockup hero={home.hero} /><p className="mt-5 text-center text-[10px] text-white/35">{home.hero.chartDisclaimer}</p></div>
         </div>
         <div className="relative border-t border-white/10 py-4">
           <div className="marquee flex w-max items-center gap-12 whitespace-nowrap text-[10px] font-bold tracking-[.18em] text-white/35">{Array.from({length:2},(_,i)=><span className="flex items-center gap-12" key={i}>{home.hero.marquee.map((item,index)=><span className="flex items-center gap-12" key={`${item}-${index}`}><span>{item}</span><span className="text-[#ffd700]">✳</span></span>)}</span>)}</div>
         </div>
         </section>
-      <TrustFeatures title={home.trust.title} cards={home.trust.cards} />
-      <section className="section-pad bg-[#f8f7f1]">
-        <Reveal><div className="mx-auto grid max-w-[1180px] gap-10">
-          <div className="text-center"><h2 className="mt-4 font-sans text-3xl font-bold leading-[1.02] tracking-[-.06em] md:text-5xl">{home.opportunity.title}</h2></div>
-          <div className="grid gap-6 sm:grid-cols-2 sm:gap-8">{home.opportunity.steps.map((step, index) => <div className="border-l-2 border-[#ffd700] pl-5" key={`${step.number}-${index}`}><span className="font-display text-3xl font-extrabold">{step.number}</span><h3 className="mt-2 font-bold">{step.title}</h3><p className="mt-2 text-sm leading-6 text-black/55">{step.description}</p></div>)}</div>
-        </div></Reveal>
-      </section>
-      <section id="services" className="section-pad bg-[#e9e7df]">
-        <div className="mx-auto max-w-[1180px]"><div className="mb-9 flex flex-col items-center gap-4 text-center"><div><h2 className="mt-3 whitespace-normal font-sans text-3xl font-bold tracking-[-.06em] md:whitespace-nowrap md:text-5xl">{home.services.title}</h2></div></div><ServiceGrid services={home.services.cards} /></div>
-      </section>
-      <section className="section-pad relative isolate overflow-hidden bg-[#ffd700]">
-        <div className="relative mx-auto max-w-[1180px] overflow-hidden rounded-[32px] border border-[#d4af37]/25 bg-gradient-to-br from-[#171717] via-[#0b0b0b] to-[#111] px-6 py-12 shadow-[0_30px_100px_rgba(0,0,0,0.45)] sm:px-10 sm:py-16 lg:px-16">
-          <div className="relative mx-auto max-w-4xl text-center">
-            <h2 className="mx-auto mt-6 max-w-5xl whitespace-normal font-sans text-3xl font-bold leading-tight tracking-[-.065em] md:whitespace-nowrap md:text-5xl">{home.story.title}</h2>
-            <p className="mx-auto mt-7 max-w-3xl text-base leading-7 text-white/65 md:text-lg">{home.story.intro}</p>
-            <p className="mx-auto mt-4 max-w-3xl text-sm leading-7 text-white/45">{home.story.detail}</p>
-            <div className="mx-auto mt-9 grid max-w-4xl gap-3 text-left sm:grid-cols-3">
-              {home.story.benefits.map((benefit, index) => { const Icon = homeFeatureIcons[benefit.icon]; return <div key={`${benefit.text}-${index}`} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.035] px-4 py-4"><Icon className="shrink-0 text-[#ffd700]" size={19} /><span className="text-sm font-semibold text-white/80">{benefit.text}</span></div>; })}
-            </div>
-            <Link href="/about" className="btn-gold mt-9" data-testid="link-story">{home.story.ctaLabel} <ArrowUpRight size={16} /></Link>
-          </div>
-        </div>
-      </section>
-      <section className="section-pad bg-[#e9e7df]">
-        <div className="mx-auto max-w-[1180px]"><div className="mb-9 text-center"><h2 className="mt-4 whitespace-normal font-sans text-3xl font-bold tracking-[-.06em] md:whitespace-nowrap md:text-5xl">{faqContent?.title ?? 'Your Questions, Answered Clearly'}</h2><p className="mt-4 whitespace-pre-line text-sm leading-6 text-black/55">{faqContent?.description ?? 'Still deciding if we’re the right fit? Start here.'}</p><Link href="/contact" className="line-link mt-5 inline-flex items-center gap-2 text-sm font-bold">{home.faq.askLabel} <ArrowRight size={15} /></Link></div><div className="mx-auto max-w-4xl"><FAQ faqs={faqContent?.faqs ?? defaultFaqs} /></div></div>
-      </section>
+      <HomeBelowFold home={home} faqContent={faqContent} />
       <section id="contact" className="section-pad bg-[#f8f7f1]">
         <div className="mx-auto grid max-w-[1180px] gap-12 lg:grid-cols-[.8fr_1.2fr]">
           <div><h2 className="mt-4 font-sans text-3xl font-bold leading-[.98] tracking-[-.06em] md:text-5xl">{home.contact.title}</h2><p className="mt-5 max-w-md text-sm leading-6 text-black/60">{home.contact.description}</p><div className="mt-8 flex items-center gap-3"><a href={home.contact.whatsappUrl} target="_blank" rel="noreferrer" className="btn-outline border-black/25 text-sm" data-testid="link-whatsapp"><MessageCircle size={16} /> {home.contact.whatsappLabel}</a><span className="text-xs text-black/45">{home.contact.whatsappHint}</span></div></div>
@@ -658,10 +576,10 @@ function AboutPage() {
   const [activeTeamMember, setActiveTeamMember] = useState(0);
   const activeMember = teamMembers[activeTeamMember] ?? teamMembers[0];
   return <><Header /><PageHero kicker={about.heroKicker} title={<>{about.heroTitle}</>} intro={about.heroIntro} centered />
-    <section className="section-pad bg-[#f8f7f1]"><div className="mx-auto grid max-w-[1180px] items-center gap-10 lg:grid-cols-2 lg:gap-16"><div><div className="eyebrow text-[#826900]">{about.storyLabel}</div><h2 className="mt-4 max-w-xl font-display text-4xl font-extrabold leading-[1.05] tracking-[-.06em] md:text-5xl">{about.storyTitle}</h2><div className="mt-6 max-w-xl space-y-4 text-[15px] leading-7 text-black/65">{about.storyBody.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()).map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>)}</div></div><div className="relative overflow-hidden rounded-[28px] border border-[#d4af37]/30 bg-[#111] shadow-[0_24px_70px_rgba(0,0,0,0.35)]">{about.storyImage && <img src={promptImageUrl(about.storyImage, 1400)} alt={about.storyCaption || about.storyTitle} className="aspect-[4/3] w-full object-cover" loading="lazy" />}<div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />{about.storyCaption && <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 p-5 sm:p-7"><span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ffd700] shadow-[0_0_18px_rgba(255,215,0,0.7)]" /><span className="text-sm font-semibold tracking-wide text-white sm:text-base">{about.storyCaption}</span></div>}</div></div></section>
-    <section className="section-pad bg-[#ffd700]"><div className="mx-auto grid max-w-[1180px] items-center gap-10 lg:grid-cols-2 lg:gap-16"><div className="relative overflow-hidden rounded-[28px] border border-[#d4af37]/30 bg-[#111] shadow-[0_24px_70px_rgba(0,0,0,0.35)]">{about.missionImage && <img src={promptImageUrl(about.missionImage, 1400)} alt={about.missionCaption || about.missionTitle} className="aspect-[4/3] w-full object-cover" loading="lazy" />}<div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />{about.missionCaption && <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 p-5 sm:p-7"><span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ffd700] shadow-[0_0_18px_rgba(255,215,0,0.7)]" /><span className="text-sm font-semibold tracking-wide text-white sm:text-base">{about.missionCaption}</span></div>}</div><div><div className="eyebrow text-black/50">{about.missionLabel}</div><h2 className="mt-4 max-w-xl font-display text-4xl font-extrabold leading-[1.05] tracking-[-.06em] md:text-5xl">{about.missionTitle}</h2><div className="mt-6 max-w-xl space-y-4 text-lg leading-8 text-black/70">{about.missionBody.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()).map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>)}</div></div></div></section>
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#1b0f2b] via-[#140b20] to-[#211034] px-6 py-20 text-white md:px-10 md:py-24"><div aria-hidden="true" className="pointer-events-none absolute -right-28 -top-28 h-96 w-96 rounded-full bg-fuchsia-500/10 blur-3xl" /><div className="relative mx-auto max-w-[1180px]"><div className="mb-10 text-center"><div className="eyebrow text-[#e8bdff]">Our team</div><h2 className="mt-4 font-display text-4xl font-extrabold tracking-[-.06em] md:text-5xl">People in your corner.</h2></div><div className="grid items-stretch gap-7 lg:grid-cols-[.8fr_1.7fr] lg:gap-10"><article className="overflow-hidden rounded-[28px] border border-fuchsia-200/15 bg-gradient-to-b from-[#321a4d] to-[#251239] p-3 shadow-[0_24px_70px_rgba(0,0,0,0.35)] lg:max-w-[420px] lg:self-center"><div className="relative overflow-hidden rounded-[21px]"><img src={promptImageUrl(activeMember.image, 900)} alt={`${activeMember.name} team role portrait`} className="aspect-[4/3.6] w-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[#241033]/70 via-transparent to-transparent" /></div>
-          <div className="px-4 pb-4 pt-5 text-center"><div className="eyebrow text-[#e8bdff]">{activeMember.role}</div><h3 className="mt-2 font-display text-2xl font-bold">{activeMember.name}</h3><p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/65">{activeMember.description}</p><div className="mt-5 flex justify-center gap-3"><a href={`mailto:${businessEmail}?subject=Hello%20SK%20Media%20Monetization`} aria-label="Email our team" className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/[.06] text-white transition hover:border-fuchsia-200/60 hover:text-[#e8bdff]"><Mail size={16} /></a><a href={whatsapp} target="_blank" rel="noreferrer" aria-label="Message our team on WhatsApp" className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/[.06] text-white transition hover:border-fuchsia-200/60 hover:text-[#e8bdff]"><SiWhatsapp size={16} /></a><a href={`tel:${primaryPhone.replaceAll(' ', '')}`} aria-label="Call our team" className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/[.06] text-white transition hover:border-fuchsia-200/60 hover:text-[#e8bdff]"><Phone size={16} /></a></div></div></article><div className="flex flex-col justify-center"><div className="mb-5 flex items-center justify-between gap-4"><p className="text-sm text-white/55">Explore the ways we support creators.</p><div className="flex gap-2"><button type="button" onClick={() => setActiveTeamMember((index) => (index - 1 + teamMembers.length) % teamMembers.length)} aria-label="Previous team profile" className="grid h-10 w-10 place-items-center rounded-full border border-fuchsia-200/20 bg-white/[.05] text-[#e8bdff] transition hover:bg-fuchsia-300/15"><ArrowRight className="rotate-180" size={17} /></button><button type="button" onClick={() => setActiveTeamMember((index) => (index + 1) % teamMembers.length)} aria-label="Next team profile" className="grid h-10 w-10 place-items-center rounded-full border border-fuchsia-200/20 bg-white/[.05] text-[#e8bdff] transition hover:bg-fuchsia-300/15"><ArrowRight size={17} /></button></div></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">{teamMembers.map((member, index) => <button key={member.name} type="button" onClick={() => setActiveTeamMember(index)} aria-pressed={activeTeamMember === index} aria-label={`Select ${member.name}`} className={`group overflow-hidden rounded-2xl border p-2 text-center transition duration-200 sm:p-3 ${activeTeamMember === index ? 'border-fuchsia-200/70 bg-fuchsia-300/15 shadow-[0_0_24px_rgba(217,70,239,0.12)]' : 'border-white/10 bg-white/[.035] hover:border-fuchsia-200/35 hover:bg-white'}`}><img src={promptImageUrl(member.image, 500)} alt="" className="aspect-square w-full rounded-xl object-cover transition duration-300 group-hover:scale-[1.02]" loading="lazy" /><span className="mt-3 block truncate text-xs font-semibold text-white sm:text-sm">{member.name}</span><span className="mt-1 block truncate text-[10px] text-white/45 sm:text-xs">{member.role}</span></button>)}</div></div></div></div></section><Footer /></>;
+    <section className="section-pad bg-[#f8f7f1]"><div className="mx-auto grid max-w-[1180px] items-center gap-10 lg:grid-cols-2 lg:gap-16"><div><div className="eyebrow text-[#826900]">{about.storyLabel}</div><h2 className="mt-4 max-w-xl font-display text-4xl font-extrabold leading-[1.05] tracking-[-.06em] md:text-5xl">{about.storyTitle}</h2><div className="mt-6 max-w-xl space-y-4 text-[15px] leading-7 text-black/65">{about.storyBody.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()).map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>)}</div></div><div className="relative overflow-hidden rounded-[28px] border border-[#d4af37]/30 bg-[#111] shadow-[0_24px_70px_rgba(0,0,0,0.35)]">{about.storyImage && <img src={promptImageUrl(about.storyImage, 1140)} alt={about.storyCaption || about.storyTitle} className="aspect-[4/3] w-full object-cover" loading="lazy" decoding="async" width={1140} height={855} />}<div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />{about.storyCaption && <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 p-5 sm:p-7"><span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ffd700] shadow-[0_0_18px_rgba(255,215,0,0.7)]" /><span className="text-sm font-semibold tracking-wide text-white sm:text-base">{about.storyCaption}</span></div>}</div></div></section>
+    <section className="section-pad bg-[#ffd700]"><div className="mx-auto grid max-w-[1180px] items-center gap-10 lg:grid-cols-2 lg:gap-16"><div className="relative overflow-hidden rounded-[28px] border border-[#d4af37]/30 bg-[#111] shadow-[0_24px_70px_rgba(0,0,0,0.35)]">{about.missionImage && <img src={promptImageUrl(about.missionImage, 1140)} alt={about.missionCaption || about.missionTitle} className="aspect-[4/3] w-full object-cover" loading="lazy" decoding="async" width={1140} height={855} />}<div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />{about.missionCaption && <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 p-5 sm:p-7"><span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ffd700] shadow-[0_0_18px_rgba(255,215,0,0.7)]" /><span className="text-sm font-semibold tracking-wide text-white sm:text-base">{about.missionCaption}</span></div>}</div><div><div className="eyebrow text-black/50">{about.missionLabel}</div><h2 className="mt-4 max-w-xl font-display text-4xl font-extrabold leading-[1.05] tracking-[-.06em] md:text-5xl">{about.missionTitle}</h2><div className="mt-6 max-w-xl space-y-4 text-lg leading-8 text-black/70">{about.missionBody.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()).map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>)}</div></div></div></section>
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#1b0f2b] via-[#140b20] to-[#211034] px-6 py-20 text-white md:px-10 md:py-24"><div aria-hidden="true" className="pointer-events-none absolute -right-28 -top-28 h-96 w-96 rounded-full bg-fuchsia-500/10 blur-3xl" /><div className="relative mx-auto max-w-[1180px]"><div className="mb-10 text-center"><div className="eyebrow text-[#e8bdff]">Our team</div><h2 className="mt-4 font-display text-4xl font-extrabold tracking-[-.06em] md:text-5xl">People in your corner.</h2></div><div className="grid items-stretch gap-7 lg:grid-cols-[.8fr_1.7fr] lg:gap-10"><article className="overflow-hidden rounded-[28px] border border-fuchsia-200/15 bg-gradient-to-b from-[#321a4d] to-[#251239] p-3 shadow-[0_24px_70px_rgba(0,0,0,0.35)] lg:max-w-[420px] lg:self-center"><div className="relative overflow-hidden rounded-[21px]"><img src={promptImageUrl(activeMember.image, 840)} alt={`${activeMember.name} team role portrait`} className="aspect-[4/3.6] w-full object-cover" loading="lazy" decoding="async" width={840} height={756} /><div className="absolute inset-0 bg-gradient-to-t from-[#241033]/70 via-transparent to-transparent" /></div>
+          <div className="px-4 pb-4 pt-5 text-center"><div className="eyebrow text-[#e8bdff]">{activeMember.role}</div><h3 className="mt-2 font-display text-2xl font-bold">{activeMember.name}</h3><p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-white/65">{activeMember.description}</p><div className="mt-5 flex justify-center gap-3"><a href={`mailto:${businessEmail}?subject=Hello%20SK%20Media%20Monetization`} aria-label="Email our team" className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/[.06] text-white transition hover:border-fuchsia-200/60 hover:text-[#e8bdff]"><Mail size={16} /></a><a href={whatsapp} target="_blank" rel="noreferrer" aria-label="Message our team on WhatsApp" className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/[.06] text-white transition hover:border-fuchsia-200/60 hover:text-[#e8bdff]"><SiWhatsapp size={16} /></a><a href={`tel:${primaryPhone.replaceAll(' ', '')}`} aria-label="Call our team" className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/[.06] text-white transition hover:border-fuchsia-200/60 hover:text-[#e8bdff]"><Phone size={16} /></a></div></div></article><div className="flex flex-col justify-center"><div className="mb-5 flex items-center justify-between gap-4"><p className="text-sm text-white/55">Explore the ways we support creators.</p><div className="flex gap-2"><button type="button" onClick={() => setActiveTeamMember((index) => (index - 1 + teamMembers.length) % teamMembers.length)} aria-label="Previous team profile" className="grid h-10 w-10 place-items-center rounded-full border border-fuchsia-200/20 bg-white/[.05] text-[#e8bdff] transition hover:bg-fuchsia-300/15"><ArrowRight className="rotate-180" size={17} /></button><button type="button" onClick={() => setActiveTeamMember((index) => (index + 1) % teamMembers.length)} aria-label="Next team profile" className="grid h-10 w-10 place-items-center rounded-full border border-fuchsia-200/20 bg-white/[.05] text-[#e8bdff] transition hover:bg-fuchsia-300/15"><ArrowRight size={17} /></button></div></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">{teamMembers.map((member, index) => <button key={member.name} type="button" onClick={() => setActiveTeamMember(index)} aria-pressed={activeTeamMember === index} aria-label={`Select ${member.name}`} className={`group overflow-hidden rounded-2xl border p-2 text-center transition duration-200 sm:p-3 ${activeTeamMember === index ? 'border-fuchsia-200/70 bg-fuchsia-300/15 shadow-[0_0_24px_rgba(217,70,239,0.12)]' : 'border-white/10 bg-white/[.035] hover:border-fuchsia-200/35 hover:bg-white'}`}><img src={promptImageUrl(member.image, 460)} alt="" className="aspect-square w-full rounded-xl object-cover transition duration-300 group-hover:scale-[1.02]" loading="lazy" decoding="async" width={460} height={460} /><span className="mt-3 block truncate text-xs font-semibold text-white sm:text-sm">{member.name}</span><span className="mt-1 block truncate text-[10px] text-white/45 sm:text-xs">{member.role}</span></button>)}</div></div></div></div></section><Footer /></>;
 }
 const servicePageIcons = { youtube: Youtube, users: Users, video: Video, clapperboard: Clapperboard, sparkles: Sparkles };
 
@@ -674,12 +592,12 @@ function ServicesPage() {
   const content = contentQuery.data ?? defaultServicesContent;
   return <><Header /><PageHero kicker={content.heroKicker} title={<>{content.heroTitle}</>} intro={content.heroIntro} centered />
     <section className="section-pad bg-[#f8f7f1]"><div className="mx-auto grid max-w-[1180px]"><div className="mb-8 max-w-2xl"><div className="eyebrow text-[#826900]">{content.servicesLabel}</div><h2 className="mt-3 font-sans text-4xl font-bold tracking-[-.06em]">{content.servicesTitle}</h2></div><div className="grid gap-4 md:grid-cols-2">
-      {content.serviceCards.map((card: ServiceCardContent, index) => { const Icon = servicePageIcons[card.icon]; return <motion.article id={`service-${card.number}`} key={`${card.number}-${index}`} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: .45, delay: index * .07 }} whileHover={{ y: -5 }} className="service-card rounded-xl border border-white/10 border-t-[3px] border-t-[#d4af37] bg-[#111] p-6 md:p-8">
-        <div className="flex items-center justify-between gap-4"><h3 className="min-w-0 flex-1 font-sans text-[25px] font-bold tracking-[-.05em]">{card.title}</h3><span className={`service-icon grid shrink-0 ${card.logo ? 'h-14 w-14' : 'h-10 w-10'} place-items-center overflow-hidden rounded-full bg-[#ffd700] text-black`}>{card.logo ? <img src={card.logo} alt={`${card.title} logo`} className="h-full w-full object-contain p-1" /> : <Icon size={18} />}</span></div>
+      {content.serviceCards.map((card: ServiceCardContent, index) => { const Icon = servicePageIcons[card.icon]; return <article id={`service-${card.number}`} key={`${card.number}-${index}`} className="service-card rounded-xl border border-white/10 border-t-[3px] border-t-[#d4af37] bg-[#111] p-6 md:p-8">
+        <div className="flex items-center justify-between gap-4"><h3 className="min-w-0 flex-1 font-sans text-[25px] font-bold tracking-[-.05em]">{card.title}</h3><span className={`service-icon grid shrink-0 ${card.logo ? 'h-14 w-14' : 'h-10 w-10'} place-items-center overflow-hidden rounded-full bg-[#ffd700] text-black`}>{card.logo ? <img src={card.logo} alt={`${card.title} logo`} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" width={112} height={112} /> : <Icon size={18} />}</span></div>
         <p className="mt-3 max-w-md text-sm leading-6 text-black/60">{card.description}</p>
         {card.features.length > 0 && <ul className="mt-5 grid gap-2">{card.features.map((feature, featureIndex) => <li key={`${feature}-${featureIndex}`} className="flex items-center gap-2 text-xs text-black/70"><Check size={14} className="text-[#9b7b00]" />{feature}</li>)}</ul>}
         <Link href="/contact" className="line-link mt-6 inline-flex items-center gap-2 text-xs font-bold" data-testid={`link-service-${card.number}`}>{card.ctaLabel} <ArrowUpRight size={14} /></Link>
-      </motion.article>; })}
+      </article>; })}
     </div></div></section>
     <section className="section-pad bg-[#111] text-white"><div className="mx-auto max-w-[1180px]"><div className="mb-10 text-center"><div className="eyebrow text-[#ffd700]">{content.processLabel}</div><h2 className="mx-auto mt-4 whitespace-normal font-sans text-[clamp(1.3rem,5.6vw,3rem)] font-bold tracking-[-.06em]">{content.processTitle}</h2></div><div className="grid gap-4 md:grid-cols-3">{content.processSteps.map((step, index) => <div key={`${step.number}-${index}`} className="rounded-2xl border border-white/10 bg-white/[.035] p-6 transition-colors hover:border-[#ffd700]/45"><div className="grid h-9 w-9 place-items-center rounded-xl bg-[#ffd700]/10 font-mono text-xs text-[#ffd700]">{step.number}</div><h3 className="mt-5 font-display text-xl font-bold">{step.title}</h3><p className="mt-2 text-sm leading-6 text-white/55">{step.description}</p></div>)}</div></div></section>
     <Footer /></>;
@@ -711,10 +629,12 @@ function AllPromptsPage() {
   const [appliedSearch, setAppliedSearch] = useState('');
   const [sortOrder, setSortOrder] = useState<'featured' | 'newest' | 'oldest'>('newest');
   const [activeCategory, setActiveCategory] = useState('All Categories');
-  const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'premium'>('all');
+  const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'premium'>(() => new URLSearchParams(window.location.search).get('access') === 'free' ? 'free' : 'all');
 
-  const categories = [...new Set((catalogQuery.data ?? []).map((prompt) => prompt.category))].sort((a, b) => a.localeCompare(b));
-  const visiblePrompts = (catalogQuery.data ?? [])
+  const prompts = catalogQuery.data ?? [];
+  const hasPremiumPrompts = prompts.some((prompt) => prompt.access === 'Premium');
+  const categories = [...new Set(prompts.map((prompt) => prompt.category))].sort((a, b) => a.localeCompare(b));
+  const visiblePrompts = prompts
     .filter((prompt) => accessFilter === 'all' || prompt.access.toLowerCase() === accessFilter)
     .filter((prompt) => activeCategory === 'All Categories' || prompt.category === activeCategory)
     .filter((prompt) => !appliedSearch || `${prompt.title} ${prompt.category}`.toLowerCase().includes(appliedSearch.toLowerCase()))
@@ -729,16 +649,16 @@ function AllPromptsPage() {
           <button type="submit" className="rounded-full bg-black px-8 py-4 text-sm font-extrabold text-white !text-white shadow-[0_8px_22px_rgba(0,0,0,.18)] transition hover:bg-black">SEARCH</button>
         </form>
         <div className="mt-4 flex flex-wrap justify-center gap-3" aria-label="Filter prompts by category">
-          <div className="flex w-full flex-wrap justify-center gap-2.5" aria-label="Filter prompts by access">
+          {hasPremiumPrompts && <div className="flex w-full flex-wrap justify-center gap-2.5" aria-label="Filter prompts by access">
             {([['all', 'All Prompts', null], ['free', 'Free', <Gift key="free-icon" size={15} />], ['premium', 'Premium', <Star key="premium-icon" size={15} fill="currentColor" />]] as const).map(([value, label, icon]) => <button key={value} type="button" onClick={() => setAccessFilter(value)} aria-pressed={accessFilter === value} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-bold transition ${accessFilter === value ? 'border-black bg-black text-white shadow-[0_4px_14px_rgba(0,0,0,.18)]' : 'border-white/15 bg-[#1c1c1c] text-white/70 hover:border-[#ffd700]/60 hover:text-[#ffd700]'}`}>{icon}{label}</button>)}
-          </div>
+          </div>}
           {['All Categories', ...categories].map((category) => <button key={category} type="button" onClick={() => setActiveCategory(category)} aria-pressed={activeCategory === category} className={`rounded-full border px-4 py-2.5 text-[13px] font-semibold transition ${activeCategory === category ? 'border-[#090909] bg-[#090909] text-white !text-white' : 'border-[#d2d0ca] bg-[#f8f7f4] text-[#1d1d1b] hover:border-white/25 hover:bg-white'}`}>{category}</button>)}
         </div>
       </div>
 
       <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {catalogQuery.isLoading ? <div className="col-span-full py-16 text-center text-sm text-black/55">Loading prompts…</div> : catalogQuery.isError ? <div className="col-span-full py-16 text-center text-sm text-black/55"><p>We couldn’t load the prompts.</p><button type="button" onClick={() => catalogQuery.refetch()} className="mt-3 font-bold underline">Try again</button></div> : visiblePrompts.map((prompt) => <article key={prompt.id} className="group flex min-w-0 flex-col overflow-hidden rounded-[20px] border border-white/10 bg-[#1e1e1e] shadow-[0_14px_32px_rgba(0,0,0,.24)] transition hover:-translate-y-1 hover:border-red-500/40">
-          <div className="relative aspect-[1.8/1] overflow-hidden bg-[#292929]"><img src={promptImageUrl(prompt.image)} alt={prompt.title} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]" />{prompt.access === 'Premium' && <span className="prompt-premium-badge absolute right-3 top-3 rounded-full bg-[#101010]/90 px-3 py-1.5 text-[11px] font-bold text-white">🔒 Premium</span>}</div>
+          <div className="relative aspect-[1.8/1] overflow-hidden bg-[#292929]"><img src={promptImageUrl(prompt.image, 700)} alt={prompt.title} loading="lazy" decoding="async" width={700} height={389} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]" />{prompt.access === 'Premium' && <span className="prompt-premium-badge absolute right-3 top-3 rounded-full bg-[#101010]/90 px-3 py-1.5 text-[11px] font-bold text-white">🔒 Premium</span>}</div>
           <div className="flex min-h-[198px] flex-col p-4">
             <span className="prompt-category-badge w-fit rounded-full bg-black px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white">{prompt.category}</span>
             <h3 className="mt-3 min-h-[2.5em] line-clamp-2 font-display text-[16px] font-extrabold uppercase leading-[1.25] tracking-[-.025em]">{prompt.title}</h3>
@@ -854,34 +774,95 @@ function JoinCommunityPage() {
   return <PromptSubscriptionPage />;
 }
 
+function FreeAccessPage() {
+  usePageMeta('Free Access | SK Prompt Party', 'Join the SK Prompt Party WhatsApp group and follow its channel for free access.');
+  const plansQuery = useGetCommunityPlans();
+
+  const safeWhatsAppUrl = (value: string, type: 'group' | 'channel') => {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== 'https:' || url.username || url.password) return '';
+      if (type === 'group') {
+        return url.hostname === 'chat.whatsapp.com' && /^\/[A-Za-z0-9_-]+\/?$/.test(url.pathname) ? url.toString() : '';
+      }
+      return ['whatsapp.com', 'www.whatsapp.com'].includes(url.hostname) && /^\/channel\/[A-Za-z0-9_-]+\/?$/.test(url.pathname) ? url.toString() : '';
+    } catch {
+      return '';
+    }
+  };
+
+  if (plansQuery.isLoading) return <><Header /><main className="min-h-[75vh] bg-[#171514] px-5 py-16 text-center text-white">Loading free access links…</main><Footer /></>;
+  if (plansQuery.isError || !plansQuery.data) return <><Header /><main className="min-h-[75vh] bg-[#171514] px-5 py-16 text-center text-white"><p>We couldn’t load the WhatsApp links.</p><button type="button" onClick={() => plansQuery.refetch()} className="mt-4 font-bold underline">Try again</button></main><Footer /></>;
+
+  const destinations = [
+    { title: 'WhatsApp Group', description: 'Join the community group and connect with other members.', action: 'Join Group', url: safeWhatsAppUrl(plansQuery.data.whatsappGroupUrl, 'group') },
+    { title: 'WhatsApp Channel', description: 'Follow the channel for community updates and announcements.', action: 'Follow Channel', url: safeWhatsAppUrl(plansQuery.data.whatsappChannelUrl, 'channel') },
+  ];
+
+  return <><Header />
+    <main className="min-h-[75vh] bg-[#171514] bg-[radial-gradient(ellipse_at_top,rgba(113,48,46,.24),transparent_65%)] px-5 py-12 text-white md:py-16">
+      <div className="mx-auto max-w-[760px] text-center">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#20c765] text-white"><SiWhatsapp size={28} /></div>
+        <h1 className="mt-5 font-display text-3xl font-extrabold tracking-[-.04em] md:text-4xl">Get Free Access</h1>
+        <p className="mx-auto mt-3 max-w-[560px] text-sm leading-6 text-white/60">Join our WhatsApp group and follow the channel to stay connected with the SK Prompt Party community.</p>
+      </div>
+      <div className="mx-auto mt-8 grid max-w-[760px] gap-5 sm:grid-cols-2">
+        {destinations.map((item) => <section key={item.title} className="rounded-[22px] border border-black/10 bg-[#f6f5f0] p-6 text-center text-[#211f1b] shadow-[0_24px_70px_rgba(0,0,0,.18)]">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#20c765]/15 text-[#159447]"><SiWhatsapp size={24} /></div>
+          <h2 className="mt-4 font-display text-xl font-extrabold">{item.title}</h2>
+          <p className="mt-2 min-h-10 text-sm leading-5 text-black/60">{item.description}</p>
+          {item.url ? <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-5 flex w-full justify-center rounded-full bg-[#090909] px-5 py-3.5 text-center text-xs font-extrabold text-white transition hover:bg-[#292929]" data-testid={`link-${item.title === 'WhatsApp Group' ? 'whatsapp-group' : 'whatsapp-channel'}`}>{item.action}</a> : <button type="button" disabled className="mt-5 flex w-full cursor-not-allowed justify-center rounded-full bg-[#090909]/60 px-5 py-3.5 text-center text-xs font-extrabold text-white/75">{item.action}</button>}
+        </section>)}
+      </div>
+    </main>
+    <Footer /></>;
+}
+
 function PromptSubscriptionPage() {
-  usePageMeta('Join the SK Prompt Party | Premium Access', 'Get premium access to SK Prompt Party prompts for $5 USD or PKR 1,400 per month.');
+  usePageMeta('Join the SK Prompt Party | Free and Premium Access', 'Compare the Free and Premium SK Prompt Party community plans.');
+  const plansQuery = useGetCommunityPlans();
   const [coupon, setCoupon] = useState('');
   const [currency, setCurrency] = useState<'USD' | 'PKR'>('USD');
   const [, navigate] = useLocation();
-  const benefits = ['Access to all prompts — current and future', 'Full prompt content with storyboard images', 'One-click copy prompt', 'New viral niches added weekly', 'Works with Seedance, Kling, Veo & more', 'Instant access after payment', 'Cancel anytime'];
-  const price = currency === 'USD' ? '$5' : 'PKR 1,400';
+  if (plansQuery.isLoading) return <><Header /><main className="min-h-[75vh] bg-[#171514] px-5 py-16 text-center text-white">Loading community plans…</main><Footer /></>;
+  if (plansQuery.isError || !plansQuery.data) return <><Header /><main className="min-h-[75vh] bg-[#171514] px-5 py-16 text-center text-white"><p>We couldn’t load community plans.</p><button type="button" onClick={() => plansQuery.refetch()} className="mt-4 font-bold underline">Try again</button></main><Footer /></>;
+  const { freePlan, premiumPlan } = plansQuery.data;
+  const formatPrice = (usd: number, pkr: number) => currency === 'USD' ? `$${usd.toLocaleString('en-US')}` : `PKR ${pkr.toLocaleString('en-US')}`;
+  const freePrice = formatPrice(freePlan.priceUsd, freePlan.pricePkr);
+  const price = formatPrice(premiumPlan.priceUsd, premiumPlan.pricePkr);
   const paymentMethod = currency === 'USD' ? 'Binance' : 'EasyPaisa';
-  const paymentMessage = encodeURIComponent(`Hi, I would like to subscribe to SK Prompt Party Premium for ${price}/month using ${paymentMethod}. Please share the payment details.`);
   const indiaUpiMessage = encodeURIComponent('Hi, I would like to subscribe to SK Prompt Party Premium. Please share the UPI payment details.');
 
   return <><Header />
     <main className="min-h-[75vh] bg-[#171514] bg-[radial-gradient(ellipse_at_top,rgba(113,48,46,.24),transparent_65%)] px-5 py-10 text-white md:py-14">
-      <div className="mx-auto max-w-[620px] text-center"><h1 className="font-display text-3xl font-extrabold tracking-[-.04em] md:text-4xl">Join the Community</h1><p className="mt-3 text-sm text-white/55">Unlock every prompt — current &amp; future. New viral drops every week.</p></div>
-      <section className="relative mx-auto mt-8 max-w-[480px] rounded-[22px] border border-white/10 bg-[#1e1e1e] px-6 pb-6 pt-9 shadow-[0_24px_70px_rgba(0,0,0,.35)] md:px-8">
-        <span className="join-premium-badge absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#090909] px-5 py-2 text-[11px] font-extrabold text-white shadow-lg">Premium Access</span>
+      <div className="mx-auto max-w-[760px] text-center"><h1 className="font-display text-3xl font-extrabold tracking-[-.04em] md:text-4xl">Join the Community</h1><p className="mt-3 text-sm text-white/55">Start with free prompts or unlock every prompt with Premium.</p></div>
+      {freePlan.isActive || premiumPlan.isActive ? <div className={`mx-auto mt-8 grid ${freePlan.isActive && premiumPlan.isActive ? 'max-w-[980px] lg:grid-cols-2' : 'max-w-[478px] grid-cols-1'} items-stretch gap-6`}>
+      {freePlan.isActive && <section className="relative rounded-[22px] border border-black/10 bg-[#f6f5f0] px-6 pb-6 pt-9 text-[#211f1b] shadow-[0_24px_70px_rgba(0,0,0,.18)] md:px-8">
+        <span className="join-free-badge absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#090909] px-5 py-2 text-[11px] font-extrabold text-white shadow-lg">{freePlan.title}</span>
         <div className="mt-1 flex flex-col items-center gap-3">
-          <label htmlFor="subscription-currency" className="text-[10px] font-bold uppercase tracking-[.14em] text-white/45">Choose currency</label>
+          <p className="text-center text-xs font-semibold text-black/55">{freePlan.description}</p>
+          <div className="font-sans text-5xl font-extrabold tracking-[-.06em]">{freePrice}<span className="ml-1 text-sm font-medium tracking-normal text-black/50">/{freePlan.billingPeriod}</span></div>
+        </div>
+        <ul className="mt-6 divide-y divide-white/10">
+          {freePlan.features.map((benefit, index) => <li key={`${benefit}-${index}`} className="flex items-center gap-3 py-2.5 text-xs text-black/75"><span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-500"><Check size={11} strokeWidth={3} /></span>{benefit}</li>)}
+        </ul>
+        <Link href="/sk-prompt-party/free-access" className="join-free-cta mt-5 flex w-full justify-center rounded-full bg-[#090909] px-5 py-3.5 text-center text-xs font-extrabold text-white shadow-[0_8px_24px_rgba(0,0,0,.16)] transition hover:bg-[#292929]" data-testid="link-free-prompts">Free Access</Link>
+      </section>}
+      {premiumPlan.isActive && <section className="relative rounded-[22px] border border-black/10 bg-[#f6f5f0] px-6 pb-6 pt-9 text-[#211f1b] shadow-[0_24px_70px_rgba(0,0,0,.18)] md:px-8">
+        <span className="join-premium-badge absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#090909] px-5 py-2 text-[11px] font-extrabold text-white shadow-lg">{premiumPlan.title}</span>
+        <div className="mt-1 flex flex-col items-center gap-3">
+          <label htmlFor="subscription-currency" className="text-[10px] font-bold uppercase tracking-[.14em] text-black/45">Choose currency</label>
           <select id="subscription-currency" value={currency} onChange={(event) => setCurrency(event.target.value as 'USD' | 'PKR')} className="rounded-full border border-white/15 bg-[#141414] px-4 py-2 text-xs font-semibold text-white outline-none focus:border-[#ffd700]/60" data-testid="select-subscription-currency">
             <option value="USD">USD — US Dollar</option>
             <option value="PKR">PKR — Pakistani Rupee</option>
           </select>
-          <div className="font-sans text-5xl font-extrabold tracking-[-.06em]" aria-live="polite">{price}<span className="ml-1 text-sm font-medium tracking-normal text-white/50">/month</span></div>
-          <p className="text-xs font-semibold text-white/65">Payment method: {paymentMethod}</p>
+          <div className="font-sans text-5xl font-extrabold tracking-[-.06em]" aria-live="polite">{price}<span className="ml-1 text-sm font-medium tracking-normal text-black/50">/{premiumPlan.billingPeriod}</span></div>
+          <p className="text-center text-xs font-semibold text-black/55">{premiumPlan.description}</p>
+          <p className="text-xs font-semibold text-black/65">Payment method: {paymentMethod}</p>
         </div>
-        <ul className="mt-6 divide-y divide-white/10">{benefits.map((benefit) => <li key={benefit} className="flex items-center gap-3 py-2.5 text-xs text-white/80"><span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-400"><Check size={11} strokeWidth={3} /></span>{benefit}</li>)}</ul>
-        <Link href={`/sk-prompt-party/payment?currency=${currency}`} className="join-payment-cta mt-5 flex w-full justify-center rounded-full bg-[#090909] px-5 py-3.5 text-center text-xs font-extrabold text-white shadow-[0_8px_24px_rgba(0,0,0,.16)] transition hover:bg-[#292929]" data-testid="link-subscription-payment">GET {paymentMethod.toUpperCase()} PAYMENT DETAILS — {price} / MONTH</Link>
-        <p className="mt-2 text-center text-[10px] leading-4 text-white/40">We’ll send your {paymentMethod} payment instructions securely on WhatsApp.</p>
+        <ul className="mt-6 divide-y divide-black/10">{premiumPlan.features.map((benefit, index) => <li key={`${benefit}-${index}`} className="flex items-center gap-3 py-2.5 text-xs text-black/75"><span className="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-emerald-500/15 text-emerald-500"><Check size={11} strokeWidth={3} /></span>{benefit}</li>)}</ul>
+        <Link href={`/sk-prompt-party/payment?currency=${currency}`} className="join-payment-cta mt-5 flex w-full justify-center rounded-full bg-[#090909] px-5 py-3.5 text-center text-xs font-extrabold text-white shadow-[0_8px_24px_rgba(0,0,0,.16)] transition hover:bg-[#292929]" data-testid="link-subscription-payment">{premiumPlan.buttonLabel} — {paymentMethod.toUpperCase()} — {price} / {premiumPlan.billingPeriod.toUpperCase()}</Link>
+        <p className="mt-2 text-center text-[10px] leading-4 text-black/45">We’ll send your {paymentMethod} payment instructions securely on WhatsApp.</p>
         <div className="my-5 flex items-center gap-3 text-[10px] font-bold text-white/35"><span className="h-px flex-1 bg-white/10" />OR<span className="h-px flex-1 bg-white/10" /></div>
         <a href={`https://wa.me/919131421048?text=${indiaUpiMessage}`} target="_blank" rel="noreferrer" className="join-upi-cta flex w-full items-center justify-center gap-2 rounded-full bg-[#20c765] px-5 py-3.5 text-center text-xs font-extrabold text-white transition hover:bg-[#19b85a]" data-testid="link-subscription-upi"><SiWhatsapp size={19} /> PAY WITH UPI — CHAT ON WHATSAPP</a>
         <p className="mt-2 text-center text-xs leading-5 text-white/45">Indian users: message us on <a className="font-semibold text-white/65 hover:text-white" href="https://wa.me/919131421048" target="_blank" rel="noreferrer">+91 91314 21048</a> for UPI payment — access activated within minutes.</p>
@@ -889,7 +870,8 @@ function PromptSubscriptionPage() {
           <input value={coupon} onChange={(event) => setCoupon(event.target.value)} placeholder="HAVE A COUPON CODE?" aria-label="Coupon code" className="min-w-0 flex-1 rounded-full border border-white/10 bg-[#141414] px-4 py-2.5 text-[10px] text-white outline-none placeholder:text-white/35 focus:border-white/25" />
           <button type="submit" className="rounded-full border border-white/10 px-5 py-2.5 text-[10px] font-bold text-white/75 hover:border-white/30 hover:text-white">APPLY</button>
         </form>
-      </section>
+      </section>}
+      </div> : <p className="mx-auto mt-10 max-w-[620px] text-center text-sm text-white/65">Community plans are currently unavailable. Please check back soon.</p>}
     </main>
     <Footer /></>;
 }
@@ -897,13 +879,17 @@ function PromptSubscriptionPage() {
 function PromptPaymentPage() {
   const currency = new URLSearchParams(window.location.search).get('currency') === 'PKR' ? 'PKR' : 'USD';
   const isUsd = currency === 'USD';
+  const plansQuery = useGetCommunityPlans();
+  const premiumPlan = plansQuery.data?.premiumPlan;
   const walletAddress = import.meta.env.VITE_BINANCE_BEP20_ADDRESS?.trim() || '0xd7566f50b53AD105eA1Fe7A8A237e666284A6aF5';
   const easypaisaName = import.meta.env.VITE_EASYPAISA_ACCOUNT_NAME?.trim() ?? '';
   const easypaisaNumber = import.meta.env.VITE_EASYPAISA_ACCOUNT_NUMBER?.trim() ?? '';
   const [copied, setCopied] = useState<'amount' | 'account' | null>(null);
-  const amount = isUsd ? '5.01 USDT' : 'PKR 1,400';
+  const usdAmount = premiumPlan ? (premiumPlan.priceUsd + 0.01).toFixed(2) : '';
+  const pkrAmount = premiumPlan ? `PKR ${premiumPlan.pricePkr.toLocaleString('en-US')}` : '';
+  const amount = isUsd ? `${usdAmount} USDT` : pkrAmount;
   const supportMessage = encodeURIComponent(`Hi, I am paying for SK Prompt Party Premium (${amount}) via ${isUsd ? 'USDT BEP-20' : 'EasyPaisa'}. Please help me complete payment and activate access.`);
-  const easypaisaRequestMessage = encodeURIComponent('Hi, please share the EasyPaisa payment link/account details for my SK Prompt Party Premium subscription (PKR 1,400).');
+  const easypaisaRequestMessage = encodeURIComponent(`Hi, please share the EasyPaisa payment link/account details for my SK Prompt Party Premium subscription (${pkrAmount}).`);
   const easypaisaRequestLink = `${whatsapp}?text=${easypaisaRequestMessage}`;
   usePageMeta(isUsd ? 'Pay with Binance | SK Prompt Party' : 'Pay with EasyPaisa | SK Prompt Party', 'Secure payment instructions for SK Prompt Party Premium.');
 
@@ -916,6 +902,10 @@ function PromptPaymentPage() {
       toast({ title: 'Could not copy', description: 'Please select and copy the text manually.', variant: 'destructive' });
     }
   };
+
+  if (plansQuery.isLoading) return <><Header /><main className="grid min-h-screen place-items-center bg-[#f6f5f0] text-sm text-black/55">Loading payment details…</main><Footer /></>;
+  if (plansQuery.isError || !premiumPlan) return <><Header /><main className="grid min-h-screen place-items-center bg-[#f6f5f0] px-5 text-center text-sm text-black/55"><div><p>We couldn’t load payment details.</p><button type="button" onClick={() => plansQuery.refetch()} className="mt-3 font-bold underline">Try again</button></div></main><Footer /></>;
+  if (!premiumPlan.isActive) return <><Header /><main className="grid min-h-screen place-items-center bg-[#f6f5f0] px-5 text-center text-sm text-black/55"><div><p>Premium membership is currently unavailable.</p><Link href="/sk-prompt-party/join-community" className="mt-3 inline-block font-bold underline">Back to community plans</Link></div></main><Footer /></>;
 
   return <>
     <Header />
@@ -930,7 +920,7 @@ function PromptPaymentPage() {
         <div className="mt-5 rounded-xl border border-black/10 bg-[#f8f7f1] p-3">
           <p className="text-[9px] font-bold uppercase tracking-wide text-black/80">Step 1 — send exactly this amount</p>
           <div className="mt-2 flex items-center justify-between gap-3">
-            <strong className="text-xl font-extrabold text-black">{isUsd ? <>5.01 <span className="text-[10px] text-black">USDT</span></> : 'PKR 1,400'}</strong>
+            <strong className="text-xl font-extrabold text-black">{isUsd ? <>{usdAmount} <span className="text-[10px] text-black">USDT</span></> : pkrAmount}</strong>
             <button type="button" onClick={() => copyText(amount, 'amount')} className="inline-flex items-center gap-1.5 rounded-full border border-black/10 px-3 py-1.5 text-[9px] font-extrabold text-black hover:bg-black/5" aria-label="Copy payment amount"><Copy size={11} />{copied === 'amount' ? 'COPIED' : 'COPY'}</button>
           </div>
           <p className="mt-2 text-[9px] leading-4 text-black/70">{isUsd ? 'The extra $0.01 helps us identify your payment.' : 'Send the exact PKR amount shown above.'}</p>
@@ -978,6 +968,7 @@ function SKPromptPartyPage() {
   const catalog = catalogQuery.data ?? [];
   const heroPrompts = catalog.filter((prompt) => prompt.placement === 'hero' || prompt.placement === 'both');
   const mainPrompts = catalog.filter((prompt) => prompt.placement === 'main' || prompt.placement === 'both');
+  const hasPremiumPrompts = mainPrompts.some((prompt) => prompt.access === 'Premium');
   const categories = [...new Set(mainPrompts.map((prompt) => prompt.category))].sort((a, b) => a.localeCompare(b));
   const visiblePrompts = mainPrompts
     .filter((prompt) => accessFilter === 'all' || prompt.access.toLowerCase() === accessFilter)
@@ -988,7 +979,7 @@ function SKPromptPartyPage() {
     <div className="prompt-marquee-viewport overflow-hidden py-4" aria-label="Featured community prompts">
       <div className="prompt-marquee-track flex w-max gap-4">
         {[...heroPrompts, ...heroPrompts].map((prompt, index) => <Link key={`${prompt.id}-${index}`} href={prompt.access === 'Premium' ? '/sk-prompt-party/join-community' : `/sk-prompt-party/prompt/${prompt.slug}`} className="prompt-marquee-card group relative h-[150px] w-[260px] shrink-0 overflow-hidden rounded-xl border border-white/20 bg-[#1e1e1e] sm:h-[174px] sm:w-[310px]">
-          <img src={promptImageUrl(prompt.image, 620)} alt="" aria-hidden="true" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+          <img src={promptImageUrl(prompt.image, 620)} alt="" aria-hidden="true" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" decoding="async" width={620} height={344} />
           <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
           <span className="prompt-marquee-title absolute inset-x-3 bottom-3 line-clamp-2 text-left text-xs font-bold leading-4 text-white sm:text-sm">{prompt.title}</span>
         </Link>)}
@@ -996,7 +987,7 @@ function SKPromptPartyPage() {
     </div>
     <div className="relative z-10 mx-auto -mt-[68px] flex max-w-[1180px] flex-col items-center px-5 pb-8 text-center md:-mt-[92px] md:pb-10">
       <div className="relative h-[156px] w-[156px] overflow-visible rounded-[28px] border-[4px] border-[#f6f5f0] bg-[#17151f] shadow-lg md:h-[188px] md:w-[188px]">
-        <img src={promptPartyProfileImage} alt="SK Prompt Party profile" className="h-full w-full rounded-[20px] object-cover" />
+        <img src={promptPartyProfileImage} alt="SK Prompt Party profile" className="h-full w-full rounded-[20px] object-cover" loading="lazy" decoding="async" width={376} height={376} />
         <span className="absolute -bottom-1 -right-2 grid h-8 w-8 place-items-center rounded-full border-[3px] border-[#f6f5f0] bg-[#e5bd43] text-[#17130a]" aria-label="Verified"><Check size={16} strokeWidth={3} /></span>
       </div>
       <h1 className="mt-5 font-serif text-[27px] font-bold leading-tight tracking-[-.025em] md:mt-6 md:text-[30px]">SK Prompt Party</h1>
@@ -1015,15 +1006,15 @@ function SKPromptPartyPage() {
           </select>
           <button type="submit" className="prompt-search-button rounded-full bg-[#090909] px-7 py-3 text-sm font-extrabold text-white !text-white shadow-[0_8px_22px_rgba(0,0,0,.18)] transition hover:bg-[#292929]">SEARCH</button>
         </form>
-        <div className="mt-4 flex flex-wrap justify-center gap-2.5" aria-label="Filter prompts by access">
+        {hasPremiumPrompts && <div className="mt-4 flex flex-wrap justify-center gap-2.5" aria-label="Filter prompts by access">
           {([['all', 'All Prompts', null], ['free', 'Free', <Gift key="free-icon" size={15} />], ['premium', 'Premium', <Star key="premium-icon" size={15} fill="currentColor" />]] as const).map(([value, label, icon]) => <button key={value} type="button" onClick={() => setAccessFilter(value)} aria-pressed={accessFilter === value} className={`prompt-access-filter inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-bold transition ${accessFilter === value ? 'border-black bg-black text-white shadow-[0_4px_14px_rgba(0,0,0,.18)]' : 'border-white/15 bg-[#1c1c1c] text-white/70 hover:border-[#ffd700]/60 hover:text-[#ffd700]'}`}>{icon}{label}</button>)}
-        </div>
+        </div>}
         <div className="mt-4 flex flex-wrap justify-center gap-2.5" aria-label="Filter prompts by category">
           {['All Categories', ...categories].map((category) => <button key={category} type="button" onClick={() => setActiveCategory(category)} aria-pressed={activeCategory === category} className={`prompt-filter-button rounded-full border px-4 py-2.5 text-[13px] font-semibold transition ${activeCategory === category ? 'border-[#090909] bg-[#090909] text-white !text-white' : 'border-white/10 bg-[#1b1b1b] text-white/60 hover:border-white/25 hover:text-white'}`}>{category}</button>)}
         </div>
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {catalogQuery.isLoading ? <div className="col-span-full py-16 text-center text-sm text-white/55">Loading prompts…</div> : catalogQuery.isError ? <div className="col-span-full py-16 text-center text-sm text-white/55"><p>We couldn’t load the prompt catalogue.</p><button type="button" onClick={() => catalogQuery.refetch()} className="mt-3 font-bold underline">Try again</button></div> : visiblePrompts.map((prompt) => <article key={prompt.id} className="group overflow-hidden rounded-[20px] border border-white/10 bg-[#1e1e1e] shadow-[0_14px_32px_rgba(0,0,0,.24)] transition hover:-translate-y-1 hover:border-red-500/40">
-            <div className="relative aspect-[1.8/1] overflow-hidden bg-[#292929]"><img src={promptImageUrl(prompt.image)} alt={prompt.title} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]" />{prompt.access === 'Premium' && <span className="prompt-premium-badge absolute right-3 top-3 rounded-full bg-[#101010]/90 px-3 py-1.5 text-[11px] font-bold text-white">🔒 Premium</span>}</div>
+            <div className="relative aspect-[1.8/1] overflow-hidden bg-[#292929]"><img src={promptImageUrl(prompt.image, 700)} alt={prompt.title} loading="lazy" decoding="async" width={700} height={389} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]" />{prompt.access === 'Premium' && <span className="prompt-premium-badge absolute right-3 top-3 rounded-full bg-[#101010]/90 px-3 py-1.5 text-[11px] font-bold text-white">🔒 Premium</span>}</div>
             <div className="flex min-h-[198px] flex-col p-4">
               <span className="prompt-category-badge w-fit rounded-full bg-black px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white">{prompt.category}</span>
               <h3 className="mt-3 min-h-[2.5em] line-clamp-2 font-display text-[16px] font-extrabold uppercase leading-[1.25] tracking-[-.025em]">{prompt.title}</h3>
@@ -1079,7 +1070,7 @@ function PromptDetailPage() {
           <h2 id="prompt-reference-title" className="mb-3 text-lg font-bold">Storyboard &amp; Reference</h2>
           <div className="relative w-full max-w-[650px] overflow-hidden rounded-xl border border-white/10 bg-[#1e1d1c] shadow-lg">
             <button type="button" onClick={() => setReferenceZoomOpen(true)} aria-label="Zoom storyboard reference image" className="block w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8860b]">
-              <img src={promptImageUrl(prompt.image, 1200)} alt={`Storyboard reference for ${prompt.title}`} className="aspect-video w-full object-cover transition-transform duration-200 hover:scale-[1.02]" loading="lazy" />
+              <img src={promptImageUrl(prompt.image, 1200)} alt={`Storyboard reference for ${prompt.title}`} className="aspect-video w-full object-cover transition-transform duration-200 hover:scale-[1.02]" loading="lazy" decoding="async" width={1200} height={675} />
             </button>
             <a href={promptImageUrl(prompt.image, 1800)} download={`${prompt.slug}-storyboard.${prompt.image.startsWith('data:image/png') ? 'png' : prompt.image.startsWith('data:image/webp') ? 'webp' : 'jpg'}`} aria-label={`Download storyboard image for ${prompt.title}`} className="prompt-image-download absolute right-3 top-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/75 px-4 py-2.5 text-xs font-bold text-white shadow-lg backdrop-blur-sm transition hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"><ArrowDown size={15} /> Download image</a>
           </div>
@@ -1099,7 +1090,7 @@ function PromptDetailPage() {
     </main>
     {referenceZoomOpen && <div role="dialog" aria-modal="true" aria-label="Expanded storyboard reference" className="fixed inset-0 z-[70] grid cursor-zoom-out place-items-center bg-black/85 p-5 backdrop-blur-sm" onMouseDown={(event) => { if (event.target === event.currentTarget) setReferenceZoomOpen(false); }}>
       <button type="button" onClick={() => setReferenceZoomOpen(false)} aria-label="Close enlarged image" className="absolute right-5 top-5 grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/60 text-white transition hover:bg-black/85"><X size={22} /></button>
-      <img src={promptImageUrl(prompt.image, 1800)} alt={`Expanded storyboard reference for ${prompt.title}`} className="max-h-[88vh] max-w-[94vw] cursor-default rounded-xl object-contain shadow-2xl" />
+      <img src={promptImageUrl(prompt.image, 1800)} alt={`Expanded storyboard reference for ${prompt.title}`} className="max-h-[88vh] max-w-[94vw] cursor-default rounded-xl object-contain shadow-2xl" loading="lazy" decoding="async" width={1800} height={1013} />
     </div>}
     <Footer /></>;
 }
@@ -1433,6 +1424,7 @@ function AdminDashboard({ username, email }: { username: string | null; email: s
   const isContactPage = path === '/admin/contact';
   const isUsersPage = path === '/admin/users';
   const isHomePage = path === '/admin/home';
+  const isCommunityPage = path === '/admin/community';
   const qc=useQueryClient();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
@@ -1631,7 +1623,7 @@ function AdminDashboard({ username, email }: { username: string | null; email: s
     reader.onload = () => {
       const image = new Image();
       image.onload = () => {
-        const maxDimension = 512;
+        const maxDimension = 224;
         const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
         const canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(image.width * scale));
@@ -1705,7 +1697,7 @@ function AdminDashboard({ username, email }: { username: string | null; email: s
     });
   };
   return <div className="admin-dashboard min-h-[100dvh] bg-[#f3f1e9]">
-    <header className="border-b border-black/10 bg-[#090909] text-white"><div className="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-4 md:px-8"><Logo light /><div className="relative" ref={accountMenuRef}><button type="button" onClick={() => setAccountMenuOpen((isOpen) => !isOpen)} aria-haspopup="menu" aria-expanded={accountMenuOpen} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.06] py-1.5 pl-1.5 pr-3 text-sm font-semibold text-white transition hover:border-[#ffd700]/50" data-testid="button-admin-account-menu"><span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-[#ffd700] text-xs font-extrabold text-black">{savedProfile.image ? <img src={savedProfile.image} alt="" className="h-full w-full object-cover" /> : (savedProfile.name || username || 'A').charAt(0)}</span><span>{username || 'Admin'}</span><ChevronDown size={15} className={`text-white/55 transition-transform ${accountMenuOpen ? 'rotate-180' : ''}`} /></button>{accountMenuOpen && <div role="menu" aria-label="Admin account menu" className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 overflow-hidden rounded-2xl border border-black/10 bg-white text-[#211f1b] shadow-[0_18px_50px_rgba(0,0,0,.22)]"><div className="border-b border-black/10 px-4 py-4"><p className="truncate text-sm font-bold">{username || 'Admin'}</p><span className="mt-2 inline-flex rounded-full bg-[#ffd700]/30 px-2.5 py-1 text-[10px] font-extrabold tracking-wide text-[#725900]">ADMIN</span></div><div className="grid gap-1 p-2"><button type="button" role="menuitem" onClick={openProfileModal} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#39362f] transition hover:bg-[#f5f4ef]" data-testid="button-admin-menu-profile">My Profile</button><Link href="/" role="menuitem" onClick={() => setAccountMenuOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#39362f] transition hover:bg-[#f5f4ef]" data-testid="link-admin-menu-home">Home</Link><button type="button" role="menuitem" onClick={() => { setAccountMenuOpen(false); logout.mutate(undefined,{onSuccess:()=>{qc.invalidateQueries({queryKey:getGetAdminSessionQueryKey()});}}); }} disabled={logout.isPending} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50" data-testid="button-admin-logout">{logout.isPending ? 'Signing out…' : 'Sign out'}</button></div></div>}</div></div></header>
+    <header className="border-b border-black/10 bg-[#090909] text-white"><div className="mx-auto flex max-w-[1400px] items-center justify-between px-5 py-4 md:px-8"><Logo light /><div className="relative" ref={accountMenuRef}><button type="button" onClick={() => setAccountMenuOpen((isOpen) => !isOpen)} aria-haspopup="menu" aria-expanded={accountMenuOpen} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.06] py-1.5 pl-1.5 pr-3 text-sm font-semibold text-white transition hover:border-[#ffd700]/50" data-testid="button-admin-account-menu"><span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-[#ffd700] text-xs font-extrabold text-black">{savedProfile.image ? <img src={savedProfile.image} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" width={64} height={64} /> : (savedProfile.name || username || 'A').charAt(0)}</span><span>{username || 'Admin'}</span><ChevronDown size={15} className={`text-white/55 transition-transform ${accountMenuOpen ? 'rotate-180' : ''}`} /></button>{accountMenuOpen && <div role="menu" aria-label="Admin account menu" className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 overflow-hidden rounded-2xl border border-black/10 bg-white text-[#211f1b] shadow-[0_18px_50px_rgba(0,0,0,.22)]"><div className="border-b border-black/10 px-4 py-4"><p className="truncate text-sm font-bold">{username || 'Admin'}</p><span className="mt-2 inline-flex rounded-full bg-[#ffd700]/30 px-2.5 py-1 text-[10px] font-extrabold tracking-wide text-[#725900]">ADMIN</span></div><div className="grid gap-1 p-2"><button type="button" role="menuitem" onClick={openProfileModal} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-[#39362f] transition hover:bg-[#f5f4ef]" data-testid="button-admin-menu-profile">My Profile</button><Link href="/" role="menuitem" onClick={() => setAccountMenuOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#39362f] transition hover:bg-[#f5f4ef]" data-testid="link-admin-menu-home">Home</Link><button type="button" role="menuitem" onClick={() => { setAccountMenuOpen(false); logout.mutate(undefined,{onSuccess:()=>{qc.invalidateQueries({queryKey:getGetAdminSessionQueryKey()});}}); }} disabled={logout.isPending} className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50" data-testid="button-admin-logout">{logout.isPending ? 'Signing out…' : 'Sign out'}</button></div></div>}</div></div></header>
     <Dialog open={profileModalOpen} onOpenChange={(isOpen) => { if (!isOpen) closeProfileModal(); }}>
       <DialogContent className="top-[6vh] max-h-[88vh] max-w-[680px] translate-y-0 overflow-y-auto border border-[#e7dfd2] bg-[#f8f7f4] p-0 text-[#211f1b] shadow-[0_24px_70px_rgba(0,0,0,.2)] sm:rounded-2xl">
         <div>
@@ -1714,7 +1706,7 @@ function AdminDashboard({ username, email }: { username: string | null; email: s
             <DialogDescription className="mt-2 text-sm text-[#6a655f]">Admin account details</DialogDescription>
             <div className="mt-6 flex flex-col items-center text-center">
               <div role="img" aria-label={`${savedProfile.name || username || 'Admin'}`}
-                className="grid h-28 w-28 place-items-center overflow-hidden rounded-full bg-[#ffd700] font-display text-4xl font-extrabold uppercase text-[#171717]">{savedProfile.image ? <img src={savedProfile.image} alt="" className="h-full w-full object-cover" /> : (savedProfile.name || username || 'A').charAt(0)}</div>
+                className="grid h-28 w-28 place-items-center overflow-hidden rounded-full bg-[#ffd700] font-display text-4xl font-extrabold uppercase text-[#171717]">{savedProfile.image ? <img src={savedProfile.image} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" width={224} height={224} /> : (savedProfile.name || username || 'A').charAt(0)}</div>
               <div className="mt-4 min-w-0"><h2 className="truncate font-display text-2xl font-bold">{savedProfile.name || username || 'Admin'}</h2><span className="mt-2 inline-flex rounded-full bg-[#ffd700]/30 px-2.5 py-1 text-[10px] font-extrabold tracking-wide text-[#725900]">ADMIN</span></div>
             </div>
             <dl className="mt-7 grid gap-5 sm:grid-cols-2">
@@ -1737,7 +1729,7 @@ function AdminDashboard({ username, email }: { username: string | null; email: s
             <DialogDescription className="mt-2 text-sm text-[#6a655f]">Update your profile details or change your password.</DialogDescription>
             <div className="mt-6 grid gap-4">
               <div className="flex items-center gap-4">
-                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-[#ffd700] font-display text-2xl font-extrabold uppercase text-[#171717]">{profileImage ? <img src={profileImage} alt="Profile preview" className="h-full w-full object-cover" /> : (profileName || username || 'A').charAt(0)}</div>
+                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-[#ffd700] font-display text-2xl font-extrabold uppercase text-[#171717]">{profileImage ? <img src={profileImage} alt="Profile preview" className="h-full w-full object-cover" loading="lazy" decoding="async" width={128} height={128} /> : (profileName || username || 'A').charAt(0)}</div>
                 <label className="grid min-w-0 flex-1 gap-2 text-xs font-semibold text-[#5f5d55]">Profile image<input type="file" accept="image/*" onChange={handleProfileImageChange} className="form-field !border-[#d0cabd] !bg-white !text-[#211f1b] file:mr-3 file:rounded-full file:border-0 file:bg-[#f1efe8] file:px-3 file:py-1.5 file:text-xs file:font-semibold" data-testid="input-admin-profile-image" /><span className="text-[11px] font-normal text-[#77756f]">Image will be resized and saved in this browser.</span></label>
               </div>
               <label className="grid gap-2 text-xs font-semibold text-[#5f5d55]">Name<input value={profileName} onChange={(event) => setProfileName(event.target.value)} maxLength={100} required className="form-field !border-[#d0cabd] !bg-white !text-[#211f1b]" data-testid="input-admin-profile-name" /></label>
@@ -1759,8 +1751,8 @@ function AdminDashboard({ username, email }: { username: string | null; email: s
       </DialogContent>
     </Dialog>
     <main className="admin-main mx-auto max-w-[1400px] px-5 py-8 md:px-8 md:py-12"><div className="admin-layout">
-      <aside className="admin-sidebar" aria-label="Dashboard navigation"><div className="eyebrow mb-4 text-white/35">Workspace</div><button type="button" onClick={() => navigate('/admin#leads')} aria-current={!isIdeasPage && !isPromptsPage && !isTeamPage && !isAboutPage && !isServicesPage && !isFaqsPage && !isHomePage && !isFooterPage && !isContactPage && !isUsersPage ? 'page' : undefined}>Creator leads</button><button type="button" onClick={() => navigate('/admin/home')} aria-current={isHomePage ? 'page' : undefined}>Homepage</button><button type="button" onClick={() => navigate('/admin/ideas')} aria-current={isIdeasPage ? 'page' : undefined}>Ideas</button><button type="button" onClick={() => navigate('/admin/prompts')} aria-current={isPromptsPage ? 'page' : undefined}>Prompts</button><button type="button" onClick={() => navigate('/admin/team')} aria-current={isTeamPage ? 'page' : undefined}>Our Team</button><button type="button" onClick={() => navigate('/admin/about')} aria-current={isAboutPage ? 'page' : undefined}>Our Story</button><button type="button" onClick={() => navigate('/admin/services')} aria-current={isServicesPage ? 'page' : undefined}>Services</button><button type="button" onClick={() => navigate('/admin/faqs')} aria-current={isFaqsPage ? 'page' : undefined}>FAQs</button><button type="button" onClick={() => navigate('/admin/contact')} aria-current={isContactPage ? 'page' : undefined}>Contact</button><button type="button" onClick={() => navigate('/admin/users')} aria-current={isUsersPage ? 'page' : undefined}>Users</button><button type="button" onClick={() => navigate('/admin/footer')} aria-current={isFooterPage ? 'page' : undefined}>Footer</button></aside><div className="admin-main-panel">
-      {isUsersPage ? <AdminUsersPanel /> : isIdeasPage ? <section className="admin-ideas-page">
+      <aside className="admin-sidebar" aria-label="Dashboard navigation"><div className="eyebrow mb-4 text-white/35">Workspace</div><button type="button" onClick={() => navigate('/admin#leads')} aria-current={!isIdeasPage && !isPromptsPage && !isTeamPage && !isAboutPage && !isServicesPage && !isFaqsPage && !isHomePage && !isFooterPage && !isContactPage && !isUsersPage && !isCommunityPage ? 'page' : undefined}>Creator leads</button><button type="button" onClick={() => navigate('/admin/home')} aria-current={isHomePage ? 'page' : undefined}>Homepage</button><button type="button" onClick={() => navigate('/admin/ideas')} aria-current={isIdeasPage ? 'page' : undefined}>Ideas</button><button type="button" onClick={() => navigate('/admin/prompts')} aria-current={isPromptsPage ? 'page' : undefined}>Prompts</button><button type="button" onClick={() => navigate('/admin/community')} aria-current={isCommunityPage ? 'page' : undefined}>Community Plans</button><button type="button" onClick={() => navigate('/admin/team')} aria-current={isTeamPage ? 'page' : undefined}>Our Team</button><button type="button" onClick={() => navigate('/admin/about')} aria-current={isAboutPage ? 'page' : undefined}>Our Story</button><button type="button" onClick={() => navigate('/admin/services')} aria-current={isServicesPage ? 'page' : undefined}>Services</button><button type="button" onClick={() => navigate('/admin/faqs')} aria-current={isFaqsPage ? 'page' : undefined}>FAQs</button><button type="button" onClick={() => navigate('/admin/contact')} aria-current={isContactPage ? 'page' : undefined}>Contact</button><button type="button" onClick={() => navigate('/admin/users')} aria-current={isUsersPage ? 'page' : undefined}>Users</button><button type="button" onClick={() => navigate('/admin/footer')} aria-current={isFooterPage ? 'page' : undefined}>Footer</button></aside><div className="admin-main-panel">
+      {isCommunityPage ? <AdminCommunityPanel /> : isUsersPage ? <AdminUsersPanel /> : isIdeasPage ? <section className="admin-ideas-page">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><div className="eyebrow text-[#826900]">Creative workspace</div><h1 className="mt-2 font-display text-4xl font-extrabold tracking-[-.06em]">Ideas</h1><p className="mt-2 text-sm text-black/55">Review community submissions before they appear on the public ideas board.</p></div><button type="button" onClick={() => { setIdeaError(''); setAddIdeaModalOpen(true); }} className="btn-gold w-fit !px-5 !py-3 text-sm" data-testid="button-admin-add-idea"><Sparkles size={16} /> Add Idea <ArrowUpRight size={15} /></button></div>
         <section className="mt-8 overflow-hidden rounded-2xl border border-black/10 bg-[#fbfaf6]">
           <div className="border-b border-black/10 p-5 md:p-6"><h2 className="font-display text-xl font-extrabold tracking-[-.04em]">Community idea submissions</h2><p className="mt-1 text-xs text-black/45">{adminIdeas.length} {adminIdeas.length === 1 ? 'idea' : 'ideas'} · pending ideas need your review</p></div>
@@ -1837,7 +1829,8 @@ function AdminPage() {
   const isFooterPage = path === '/admin/footer';
   const isContactPage = path === '/admin/contact';
   const isUsersPage = path === '/admin/users';
-  usePageMeta(isUsersPage ? 'Admin Users | SK Media Monetization' : isContactPage ? 'Admin Contact | SK Media Monetization' : isFooterPage ? 'Admin Footer | SK Media Monetization' : isHomePage ? 'Admin Homepage | SK Media Monetization' : isIdeasPage ? 'Admin Ideas | SK Media Monetization' : isPromptsPage ? 'Admin Prompts | SK Media Monetization' : isTeamPage ? 'Admin Our Team | SK Media Monetization' : isAboutPage ? 'Admin Our Story | SK Media Monetization' : isServicesPage ? 'Admin Services | SK Media Monetization' : isFaqsPage ? 'Admin FAQs | SK Media Monetization' : 'Admin Dashboard | SK Media Monetization', isUsersPage ? 'View member accounts registered on the website.' : isContactPage ? 'Edit the public Contact page details and introduction.' : isFooterPage ? 'Edit the public website footer.' : isHomePage ? 'Edit every public homepage section.' : isIdeasPage ? 'Creative ideas for the SK Media Monetization admin workspace.' : isPromptsPage ? 'Manage the SK Prompt Party catalogue.' : isTeamPage ? 'Manage profiles shown in the public Our Team section.' : isAboutPage ? 'Edit the public About page header, story, and mission.' : isServicesPage ? 'Edit the public Services page hero, service cards, and process.' : isFaqsPage ? 'Manage the public Frequently Asked Questions.' : 'Private lead management dashboard for SK Media Monetization.', true);
+  const isCommunityPage = path === '/admin/community';
+  usePageMeta(isCommunityPage ? 'Admin Community Plans | SK Media Monetization' : isUsersPage ? 'Admin Users | SK Media Monetization' : isContactPage ? 'Admin Contact | SK Media Monetization' : isFooterPage ? 'Admin Footer | SK Media Monetization' : isHomePage ? 'Admin Homepage | SK Media Monetization' : isIdeasPage ? 'Admin Ideas | SK Media Monetization' : isPromptsPage ? 'Admin Prompts | SK Media Monetization' : isTeamPage ? 'Admin Our Team | SK Media Monetization' : isAboutPage ? 'Admin Our Story | SK Media Monetization' : isServicesPage ? 'Admin Services | SK Media Monetization' : isFaqsPage ? 'Admin FAQs | SK Media Monetization' : 'Admin Dashboard | SK Media Monetization', isCommunityPage ? 'Manage the Free and Premium community membership plans.' : isUsersPage ? 'View member accounts registered on the website.' : isContactPage ? 'Edit the public Contact page details and introduction.' : isFooterPage ? 'Edit the public website footer.' : isHomePage ? 'Edit every public homepage section.' : isIdeasPage ? 'Creative ideas for the SK Media Monetization admin workspace.' : isPromptsPage ? 'Manage the SK Prompt Party catalogue.' : isTeamPage ? 'Manage profiles shown in the public Our Team section.' : isAboutPage ? 'Edit the public About page header, story, and mission.' : isServicesPage ? 'Edit the public Services page hero, service cards, and process.' : isFaqsPage ? 'Manage the public Frequently Asked Questions.' : 'Private lead management dashboard for SK Media Monetization.', true);
   const qc = useQueryClient();
   const session=useGetAdminSession({query:{queryKey:getGetAdminSessionQueryKey(),retry:false}});
   useEffect(() => {
@@ -1851,6 +1844,7 @@ function AdminPage() {
       qc.removeQueries({ queryKey: getGetAdminFaqsQueryKey() });
       qc.removeQueries({ queryKey: getGetAdminHomeContentQueryKey() });
       qc.removeQueries({ queryKey: getGetAdminContactContentQueryKey() });
+      qc.removeQueries({ queryKey: getGetAdminCommunityPlansQueryKey() });
     }
   }, [qc, session.data?.authenticated, session.isLoading]);
   if(session.isLoading) return <div className="grid min-h-[100dvh] place-items-center bg-[#090909]"><div className="w-[280px] animate-pulse"><div className="h-8 w-8 rounded-full bg-[#ffd700]"/><div className="mt-5 h-8 w-56 rounded bg-white/10"/><div className="mt-3 h-4 w-40 rounded bg-white/10"/></div></div>;
@@ -1877,12 +1871,13 @@ function Router() {
     }
     window.scrollTo(0, 0);
   }, [path]);
-  return <><RouteBoundary><AnimatePresence mode="wait" initial={false}><motion.div key={path} className={`min-h-[100dvh] ${usesLightPageTheme ? 'public-light-theme' : ''}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .2 }}><Switch>
+  return <><RouteBoundary><div key={path} className={`min-h-[100dvh] ${usesLightPageTheme ? 'public-light-theme' : ''}`}><Switch>
     <Route path="/" component={Landing} />
     <Route path="/about" component={AboutPage} />
     <Route path="/services" component={ServicesPage} />
     <Route path="/sk-prompt-party/prompt/:slug" component={PromptDetailPage} />
     <Route path="/sk-prompt-party/payment" component={PromptPaymentPage} />
+    <Route path="/sk-prompt-party/free-access" component={FreeAccessPage} />
     <Route path="/sk-prompt-party/subscribe" component={PromptSubscriptionPage} />
     <Route path="/sk-prompt-party" component={SKPromptPartyPage} />
     <Route path="/sk-prompt-party/all-prompts" component={AllPromptsPage} />
@@ -1902,11 +1897,12 @@ function Router() {
     <Route path="/admin/home" component={() => <AdminPage />} />
     <Route path="/admin/contact" component={() => <AdminPage />} />
     <Route path="/admin/users" component={() => <AdminPage />} />
+    <Route path="/admin/community" component={() => <AdminPage />} />
     <Route path="/admin" component={() => <AdminPage />} />
     <Route component={NotFound} />
-  </Switch></motion.div></AnimatePresence></RouteBoundary>{!path.startsWith('/admin') && <FloatingWhatsApp />}</>;
+  </Switch></div></RouteBoundary>{!path.startsWith('/admin') && <FloatingWhatsApp />}</>;
 }
 function App() {
-  return <QueryClientProvider client={queryClient}><TooltipProvider><WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/,'')}><Router /></WouterRouter><Toaster /></TooltipProvider></QueryClientProvider>;
+  return <QueryClientProvider client={queryClient}><TooltipProvider><Suspense fallback={null}><WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/,'')}><Router /></WouterRouter><Toaster /></Suspense></TooltipProvider></QueryClientProvider>;
 }
 export default App;

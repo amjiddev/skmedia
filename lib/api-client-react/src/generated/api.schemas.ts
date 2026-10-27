@@ -880,6 +880,55 @@ export interface FAQPageContent {
   faqs: FAQEntry[];
 }
 
+export interface CommunityPlan {
+  isActive: boolean;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  description: string;
+  /**
+     * @minimum 0
+     * @maximum 1000000
+     */
+  priceUsd: number;
+  /**
+     * @minimum 0
+     * @maximum 100000000
+     */
+  pricePkr: number;
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  billingPeriod: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  buttonLabel: string;
+  /**
+     * @maxItems 20
+     * @items.minLength 1
+     * @items.maxLength 240
+     */
+  features: string[];
+}
+
+export interface CommunityPlansContent {
+  freePlan: CommunityPlan;
+  premiumPlan: CommunityPlan;
+  /** @maxLength 500 */
+  whatsappGroupUrl: string;
+  /** @maxLength 500 */
+  whatsappChannelUrl: string;
+}
+
 export type SharedIdeaStatus = typeof SharedIdeaStatus[keyof typeof SharedIdeaStatus];
 
 

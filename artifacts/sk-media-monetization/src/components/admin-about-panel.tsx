@@ -40,7 +40,7 @@ async function prepareAboutImage(file: File) {
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Could not process this image.');
     let blob: Blob | null = null;
-    for (const maxDimension of [1200, 900, 700, 500, 360]) {
+    for (const maxDimension of [1140, 900, 700, 500, 360]) {
       const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
       canvas.width = Math.max(1, Math.round(bitmap.width * scale));
       canvas.height = Math.max(1, Math.round(bitmap.height * scale));
@@ -136,7 +136,7 @@ export default function AdminAboutPanel() {
     const src = imageSource(form[key]);
     return <div className="grid gap-3">
       <label className="grid gap-2 text-xs font-semibold text-[#5f5d55]">{label}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void chooseImage(event, key)} disabled={imageProcessing} className="form-field !border-[#d0cabd] !bg-white !text-[#211f1b] file:mr-3 file:rounded-full file:border-0 file:bg-[#f1efe8] file:px-3 file:py-1.5 file:text-xs file:font-semibold" /><span className="text-[11px] font-normal text-[#77756f]">Upload JPG, PNG, or WebP (up to 10 MB); it will be compressed automatically. Or paste an image URL, data image, or Unsplash photo ID below.</span><input maxLength={200000} value={form[key]} onChange={(event) => setField(key, event.target.value)} placeholder="https://… or photo-…" className="form-field !border-[#d0cabd] !bg-white !text-[#211f1b]" /></label>
-      {src ? <div className="group relative"><img src={src} alt={`${label} preview`} className="aspect-[16/7] w-full rounded-xl border border-black/10 object-cover" /><button type="button" onClick={() => setField(key, '')} aria-label={`Remove ${label.toLowerCase()}`} title="Remove image" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/75 text-white shadow-lg transition hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" data-testid={`button-remove-${key}`}><X size={18} /></button></div> : <div className="grid aspect-[16/7] place-items-center rounded-xl border border-dashed border-black/20 bg-black/[.03] text-black/35"><ImagePlus size={22} /></div>}
+      {src ? <div className="group relative"><img src={src} alt={`${label} preview`} className="aspect-[16/7] w-full rounded-xl border border-black/10 object-cover" loading="lazy" decoding="async" width={1360} height={595} /><button type="button" onClick={() => setField(key, '')} aria-label={`Remove ${label.toLowerCase()}`} title="Remove image" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/75 text-white shadow-lg transition hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" data-testid={`button-remove-${key}`}><X size={18} /></button></div> : <div className="grid aspect-[16/7] place-items-center rounded-xl border border-dashed border-black/20 bg-black/[.03] text-black/35"><ImagePlus size={22} /></div>}
     </div>;
   };
 
